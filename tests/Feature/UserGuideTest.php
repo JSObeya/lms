@@ -28,4 +28,11 @@ class UserGuideTest extends TestCase
         $response = $this->get('/guide');
         $response->assertRedirect('/user-guide');
     }
+
+    public function test_word_guide_document_can_be_downloaded(): void
+    {
+        $response = $this->get('/user-guide/download-word');
+        $response->assertStatus(200);
+        $response->assertHeader('content-type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    }
 }

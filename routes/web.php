@@ -50,6 +50,23 @@ Route::get('/user-guide', function () {
     return Inertia::render('Trainee/Guide');
 })->name('user.guide');
 
+// Download Word Version (.docx) of Complete User & Admin Guide
+Route::get('/user-guide/download-word', function () {
+    $filePath = public_path('downloads/Greg_ICT_Hub_LMS_Complete_User_and_Admin_Guide.docx');
+
+    if (! file_exists($filePath)) {
+        abort(404, 'Guide document not found.');
+    }
+
+    return response()->download(
+        $filePath,
+        'Greg_ICT_Hub_LMS_Complete_User_and_Admin_Guide.docx',
+        [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ]
+    );
+})->name('user.guide.download-word');
+
 Route::get('/trainee-guide', function () {
     return Inertia::render('Trainee/Guide');
 })->name('trainee.guide');

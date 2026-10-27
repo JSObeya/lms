@@ -520,6 +520,17 @@ const printGuide = () => {
                 </div>
 
                 <div class="flex items-center space-x-2.5 sm:space-x-3">
+                    <!-- Download Word Guide Button -->
+                    <a
+                        :href="route('user.guide.download-word')"
+                        class="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 dark:hover:bg-rose-900/50 border border-rose-200 dark:border-rose-800 transition flex items-center space-x-1.5 shadow-sm"
+                        title="Download Complete Word Manual (.docx)"
+                        download
+                    >
+                        <FileText class="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+                        <span class="hidden sm:inline">Download Word (.docx)</span>
+                    </a>
+
                     <!-- Print Guide Button -->
                     <button
                         @click="printGuide"
@@ -574,6 +585,27 @@ const printGuide = () => {
                         <p class="text-sm sm:text-base text-slate-300 max-w-3xl mt-2 leading-relaxed">
                             Official step-by-step documentation for System Administrators, TVET Instructors, Facilitators, and Trainees. Covers User Management, TVET Pedagogy Studio (Days 9 &amp; 10), Visual Course Builder, and Safety Verification.
                         </p>
+
+                        <!-- Hero Action Buttons including Word Download -->
+                        <div class="mt-4 flex flex-wrap items-center gap-3 print:hidden">
+                            <a
+                                :href="route('user.guide.download-word')"
+                                download
+                                class="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-lg shadow-rose-950/40 transition ring-1 ring-rose-400"
+                            >
+                                <FileText class="w-4 h-4 text-white" />
+                                <span>Download Word Guide (.docx)</span>
+                                <Download class="w-3.5 h-3.5 ml-1 opacity-80" />
+                            </a>
+                            <button
+                                @click="printGuide"
+                                type="button"
+                                class="inline-flex items-center space-x-2 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs border border-slate-700 transition"
+                            >
+                                <Printer class="w-3.5 h-3.5 text-slate-400" />
+                                <span>Print View / PDF</span>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Instant Search Bar -->
@@ -667,6 +699,25 @@ const printGuide = () => {
                                     </p>
                                 </div>
                             </button>
+                        </div>
+
+                        <!-- Offline Word Document Download Card -->
+                        <div class="p-4 rounded-2xl bg-gradient-to-br from-rose-950/40 via-slate-900 to-slate-900 border border-rose-500/30 text-white space-y-2.5 shadow-sm">
+                            <div class="flex items-center space-x-2 text-rose-400 text-xs font-bold uppercase tracking-wider">
+                                <FileText class="w-4 h-4 text-rose-400" />
+                                <span>Word Manual (.docx)</span>
+                            </div>
+                            <p class="text-[11px] text-slate-300 leading-relaxed">
+                                Complete offline editable reference guide with all 6 modules, step-by-step procedures, and tables.
+                            </p>
+                            <a
+                                :href="route('user.guide.download-word')"
+                                download
+                                class="w-full py-2 px-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center justify-center space-x-1.5 shadow-md transition ring-1 ring-rose-400/50"
+                            >
+                                <Download class="w-3.5 h-3.5" />
+                                <span>Download .docx File</span>
+                            </a>
                         </div>
                     </div>
                 </aside>
