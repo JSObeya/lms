@@ -45,10 +45,18 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-// Trainee User Manual & Guide (Publicly accessible for learners)
+// User & Admin Reference Guide (Publicly accessible for all roles)
+Route::get('/user-guide', function () {
+    return Inertia::render('Trainee/Guide');
+})->name('user.guide');
+
 Route::get('/trainee-guide', function () {
     return Inertia::render('Trainee/Guide');
 })->name('trainee.guide');
+
+Route::get('/guide', function () {
+    return redirect()->route('user.guide');
+});
 
 // Authenticated Routes
 Route::middleware(['auth', 'verified'])->group(function () {

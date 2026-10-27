@@ -16,13 +16,27 @@ createInertiaApp({
             import.meta.glob('./Pages/**/*.vue'),
         ),
     setup({ el, App, props, plugin }) {
-        return createApp({ render: () => h(App, props) })
+        const vueApp = createApp({ render: () => h(App, props) })
             .use(plugin)
             .use(ZiggyVue)
             .mount(el);
+
+        // Gracefully remove initial page load preloader
+        const preloader = document.getElementById('initial-page-preloader');
+        if (preloader) {
+            preloader.style.opacity = '0';
+            preloader.style.pointerEvents = 'none';
+            setTimeout(() => {
+                if (preloader && preloader.parentNode) {
+                    preloader.parentNode.removeChild(preloader);
+                }
+            }, 300);
+        }
+
+        return vueApp;
     },
     progress: {
-        color: '#881337',
+        color: '#e11d48',
         includeCSS: true,
         showSpinner: true,
         delay: 0,

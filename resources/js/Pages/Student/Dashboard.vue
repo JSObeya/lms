@@ -123,10 +123,10 @@ defineProps({
                         Read the step-by-step user manual covering passwords, themes, practical file submissions, and rubrics.
                     </p>
                     <Link
-                        :href="route('trainee.guide')"
+                        :href="route('user.guide')"
                         class="mt-3.5 inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-brand-700 hover:bg-brand-600 text-white font-semibold text-xs transition shadow-sm"
                     >
-                        <span>Open Trainee Guide</span>
+                        <span>Open User Guide</span>
                         <ChevronRight class="w-3.5 h-3.5" />
                     </Link>
                 </div>

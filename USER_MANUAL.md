@@ -125,3 +125,41 @@ Dooshima,Akaa,dooshima.akaa@bstcgboko.edu.ng,08087654321,BSTC Gboko,Benue,Electr
 2. Navigate to **Administration** &rarr; **User Management**.
 3. Under **Bulk TVET Teacher Import**, select the CSV file and click **Process Bulk Import**.
 4. The system validates entries, skips existing duplicates, sets default secure passwords, assigns the `teacher` role, and logs the action in the audit trail.
+
+---
+
+## 5. Administrator Guide: User Management, Soft Deletes & Audit Trail
+
+### 5.1 User Management & Inline Editing (`/admin/users`)
+- **Status & Role Filtering**: Filter users by role (`Super Admin`, `Admin`, `Facilitator`, `Teacher`, `Student`) and trashed state (`Active Only`, `Trashed Only`, `All Users`).
+- **Inline Editing**: Click on any user's name in the table to open the Edit User modal. Update their name, email, role, phone, institution, and active status.
+- **Bulk Role Conversions**: Select multiple checkboxes (or "Select All") and click "Convert Role" to instantly convert batches of students to teachers or facilitators.
+- **Soft Delete & Restore**: Soft-deleted users are disabled from signing in while their course submissions and grades remain completely preserved. Restore them at any time with a single click.
+
+### 5.2 System Audit Trail (`/admin/audit-logs`)
+- Every administrative event (user created, edited, soft deleted, restored, bulk role converted) is logged with the actor's identity, IP address, user-agent, and before/after diffs.
+
+---
+
+## 6. TVET Pedagogy & Inclusive Design Studio (Days 9 & 10)
+
+- **Studio Hub** (`/pedagogy/studio`): Access the NBTE Occupational Standards database and track completion for Day 9 and Day 10.
+- **Competency Lesson Builder** (`/pedagogy/lessons/builder`): Design competency lessons with 4-step demonstrations (Show & Tell), guided practice, independent practice, project-based learning (PBL), fault diagnosis scenarios, and work-based learning simulations.
+- **Inclusive Lesson Designer** (`/pedagogy/inclusive-designer`): Universal Design for Learning (UDL), 3-tier differentiated tasks, non-negotiable safety preservation check, gender equity, and workshop equipment rotation schedule.
+- **Facilitator Pedagogy Reviews** (`/facilitator/pedagogy-reviews`): Facilitators evaluate submitted plans across 5 criteria (20 points each, 100 points total) with qualitative feedback and approval workflows.
+- **Export / Print Lesson** (`/pedagogy/lessons/{lesson}/export`): Clean official A4 document ready for printing or PDF export.
+
+---
+
+## 7. UI Experience: Password Eye Toggle, Themes & Page Load Spinners
+
+- **Password Reveal / Hide Eye Toggle**: Tap the eye icon inside password fields on the Login and Register forms to confirm character entry and prevent authentication errors.
+- **Light & Dark Theme Switcher**: Toggle between daytime workshop light mode and low-glare dark mode (`#020617`) from the top navigation bar.
+- **Page Load & Activity Spinners**:
+  - *Initial Preloader*: An animated dual-ring spinner with the Greg ICT Hub badge displays instantly during full page loads and hard refreshes before Vue mounts.
+  - *Inertia Activity Indicators*: A top glowing progress line and a floating rolling spinner badge in the top-right corner indicate ongoing page transitions and background requests.
+
+---
+
+*For complete, comprehensive documentation, refer to `COMPREHENSIVE_USER_AND_ADMIN_GUIDE.md` or access the in-app interactive guide at `https://lms.gregicthub.com/user-guide`.*
+

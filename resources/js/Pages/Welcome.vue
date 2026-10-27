@@ -64,13 +64,13 @@ const getTradeIcon = (iconName) => {
                 </Link>
 
                 <nav class="flex items-center space-x-3 sm:space-x-4">
-                    <!-- Trainee Guide Link -->
+                    <!-- User Guide Link -->
                     <Link
-                        :href="route('trainee.guide')"
+                        :href="route('user.guide')"
                         class="px-3 py-2 text-xs sm:text-sm font-semibold text-brand-300 hover:text-white transition flex items-center space-x-1.5 rounded-lg hover:bg-slate-800/80 border border-brand-800/50"
                     >
                         <BookMarked class="w-4 h-4 text-brand-400" />
-                        <span>Trainee Guide</span>
+                        <span>User Guide</span>
                     </Link>
 
                     <!-- Theme Toggle -->
@@ -262,9 +262,9 @@ const getTradeIcon = (iconName) => {
                 </div>
 
                 <div class="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-slate-400">
-                    <Link :href="route('trainee.guide')" class="hover:text-white transition flex items-center space-x-1.5">
+                    <Link :href="route('user.guide')" class="hover:text-white transition flex items-center space-x-1.5">
                         <BookMarked class="w-4 h-4 text-brand-400" />
-                        <span>Trainee User Manual</span>
+                        <span>User &amp; Admin Manual</span>
                     </Link>
                     <Link v-if="canRegister !== false" :href="route('register')" class="hover:text-white transition">
                         Register Account

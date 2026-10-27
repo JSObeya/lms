@@ -251,14 +251,14 @@ const showFlash = ref(true);
 
                     <!-- User Profile & Action Dropdown -->
                     <div class="hidden md:flex items-center space-x-3">
-                        <!-- Trainee Guide Link -->
+                        <!-- User Guide Link -->
                         <Link
-                            :href="route('trainee.guide')"
+                            :href="route('user.guide')"
                             class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center space-x-1.5 text-xs font-medium border border-slate-700/60 shadow-sm"
-                            title="Trainee User Guide & Manual"
+                            title="Complete User & Admin Reference Guide"
                         >
                             <BookMarked class="w-4 h-4 text-brand-400" />
-                            <span class="hidden lg:inline">Trainee Guide</span>
+                            <span class="hidden lg:inline">User Guide</span>
                         </Link>
 
                         <!-- Theme Toggle -->
@@ -305,9 +305,9 @@ const showFlash = ref(true);
                                         <span>System Audit Logs</span>
                                     </DropdownLink>
 
-                                    <DropdownLink :href="route('trainee.guide')" class="flex items-center space-x-2">
+                                    <DropdownLink :href="route('user.guide')" class="flex items-center space-x-2">
                                         <BookMarked class="w-4 h-4 text-brand-500" />
-                                        <span>Trainee User Guide</span>
+                                        <span>User &amp; Admin Guide</span>
                                     </DropdownLink>
 
                                     <DropdownLink :href="route('logout')" method="post" as="button" class="flex items-center space-x-2 text-rose-600 dark:text-rose-400">
@@ -452,11 +452,11 @@ const showFlash = ref(true);
                 </Link>
 
                 <Link
-                    :href="route('trainee.guide')"
+                    :href="route('user.guide')"
                     class="block px-3 py-2 rounded-md text-base font-medium text-brand-300 hover:bg-slate-800 flex items-center space-x-2"
                 >
                     <BookMarked class="w-4 h-4 text-brand-400" />
-                    <span>Trainee User Guide &amp; Manual</span>
+                    <span>User &amp; Admin Reference Guide</span>
                 </Link>
 
                 <div class="pt-4 border-t border-slate-800">
