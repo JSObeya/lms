@@ -47,16 +47,15 @@ class RegisteredUserController extends Controller
         ]);
 
         if (class_exists(Role::class)) {
-            $studentRole = Role::where('name', 'student')->first();
-            if ($studentRole) {
-                $user->assignRole($studentRole);
-            }
+            $teacherRole = Role::where('name', 'teacher')->first()
+                ?? Role::firstOrCreate(['name' => 'teacher', 'guard_name' => 'web']);
+            $user->assignRole($teacherRole);
         }
 
         AuditLog::record('user_registered', User::class, $user->id, [
             'email' => $user->email,
             'name' => $user->name,
-            'role' => 'student',
+            'role' => 'teacher',
         ]);
 
         event(new Registered($user));

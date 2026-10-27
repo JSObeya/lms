@@ -23,6 +23,7 @@ import {
     UserPlus
 } from 'lucide-vue-next';
 import ThemeToggle from '@/Components/ThemeToggle.vue';
+import PageActivityIndicator from '@/Components/PageActivityIndicator.vue';
 
 defineProps({
     canLogin: Boolean,
@@ -53,6 +54,8 @@ const getTradeIcon = (iconName) => {
     <Head title="Greg ICT Hub LMS — Technical &amp; Vocational Education" />
 
     <div class="min-h-screen bg-slate-950 font-sans text-slate-100 flex flex-col selection:bg-teal-500 selection:text-white">
+        <PageActivityIndicator />
+
         <!-- Modern Header -->
         <header class="sticky top-0 z-50 bg-slate-950/80 backdrop-blur-md border-b border-slate-800/80">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">

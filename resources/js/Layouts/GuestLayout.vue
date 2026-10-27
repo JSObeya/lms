@@ -1,6 +1,7 @@
 <script setup>
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import ThemeToggle from '@/Components/ThemeToggle.vue';
+import PageActivityIndicator from '@/Components/PageActivityIndicator.vue';
 import { Link } from '@inertiajs/vue3';
 import { ArrowLeft } from 'lucide-vue-next';
 </script>
@@ -9,6 +10,8 @@ import { ArrowLeft } from 'lucide-vue-next';
     <div
         class="min-h-screen flex flex-col justify-between bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200 px-4 py-6"
     >
+        <PageActivityIndicator />
+
         <!-- Top Utility Bar -->
         <div class="max-w-md w-full mx-auto flex items-center justify-between">
             <Link

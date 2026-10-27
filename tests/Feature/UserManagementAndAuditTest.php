@@ -141,4 +141,53 @@ class UserManagementAndAuditTest extends TestCase
             ->has('stats')
         );
     }
+
+    public function test_convert_students_to_teachers_artisan_command(): void
+    {
+        $student1 = User::factory()->create();
+        $student1->assignRole('student');
+        $student2 = User::factory()->create();
+        $student2->assignRole('student');
+
+        $this->artisan('app:convert-students-to-teachers')
+            ->assertSuccessful();
+
+        $this->assertTrue($student1->fresh()->hasRole('teacher'));
+        $this->assertTrue($student2->fresh()->hasRole('teacher'));
+        $this->assertFalse($student1->fresh()->hasRole('student'));
+    }
+
+    public function test_admin_can_bulk_change_roles_to_teacher(): void
+    {
+        $user1 = User::factory()->create(['account_status' => 'active']);
+        $user1->assignRole('student');
+        $user2 = User::factory()->create(['account_status' => 'active']);
+        $user2->assignRole('student');
+
+        $response = $this->actingAs($this->admin)->post(route('admin.users.bulk-action'), [
+            'user_ids' => [$user1->id, $user2->id],
+            'action' => 'change_role',
+            'role' => 'teacher',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertTrue($user1->fresh()->hasRole('teacher'));
+        $this->assertTrue($user2->fresh()->hasRole('teacher'));
+    }
+
+    public function test_admin_can_bulk_update_status(): void
+    {
+        $user1 = User::factory()->create(['account_status' => 'active']);
+        $user2 = User::factory()->create(['account_status' => 'active']);
+
+        $response = $this->actingAs($this->admin)->post(route('admin.users.bulk-action'), [
+            'user_ids' => [$user1->id, $user2->id],
+            'action' => 'set_status',
+            'status' => 'suspended',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertEquals('suspended', $user1->fresh()->account_status);
+        $this->assertEquals('suspended', $user2->fresh()->account_status);
+    }
 }

@@ -131,6 +131,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/admin/users/{id}/restore', [UserManagementController::class, 'restore'])->name('admin.users.restore');
     Route::delete('/admin/users/{id}/force-delete', [UserManagementController::class, 'forceDelete'])->name('admin.users.force-delete');
     Route::post('/admin/users/{user}/toggle-status', [UserManagementController::class, 'toggleStatus'])->name('admin.users.toggle-status');
+    Route::post('/admin/users/bulk-action', [UserManagementController::class, 'bulkAction'])->name('admin.users.bulk-action');
     Route::post('/admin/users/bulk-import', [UserManagementController::class, 'bulkImportTeachers'])->name('admin.users.bulk-import');
 
     // System Audit Trail & Logs

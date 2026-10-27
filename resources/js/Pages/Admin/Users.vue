@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import PasswordInput from '@/Components/PasswordInput.vue';
@@ -37,6 +37,48 @@ const search = ref(props.filters.search || '');
 const selectedRole = ref(props.filters.role || '');
 const selectedStatus = ref(props.filters.status || '');
 const currentTab = ref(props.filters.trashed || 'active_only');
+
+// Bulk Selection State
+const selectedUsers = ref([]);
+
+const isAllSelected = computed(() => {
+    return props.users.data.length > 0 && props.users.data.every((u) => selectedUsers.value.includes(u.id));
+});
+
+const toggleSelectAll = () => {
+    if (isAllSelected.value) {
+        selectedUsers.value = [];
+    } else {
+        selectedUsers.value = props.users.data.map((u) => u.id);
+    }
+};
+
+const deselectAll = () => {
+    selectedUsers.value = [];
+};
+
+const bulkApply = (action, extraParams = {}) => {
+    if (selectedUsers.value.length === 0) return;
+
+    if (action === 'move_to_trash' && !confirm(`Are you sure you want to move ${selectedUsers.value.length} selected users to the trash?`)) {
+        return;
+    }
+
+    router.post(
+        route('admin.users.bulk-action'),
+        {
+            user_ids: selectedUsers.value,
+            action: action,
+            ...extraParams,
+        },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                selectedUsers.value = [];
+            },
+        }
+    );
+};
 
 const showCreateModal = ref(false);
 const showEditModal = ref(false);
@@ -372,6 +414,91 @@ const submitImport = () => {
                 </div>
             </div>
 
+            <!-- Bulk Actions Floating Bar -->
+            <Transition
+                enter-active-class="transition duration-200 ease-out"
+                enter-from-class="opacity-0 -translate-y-2 scale-95"
+                enter-to-class="opacity-100 translate-y-0 scale-100"
+                leave-active-class="transition duration-150 ease-in"
+                leave-from-class="opacity-100 translate-y-0 scale-100"
+                leave-to-class="opacity-0 -translate-y-2 scale-95"
+            >
+                <div
+                    v-if="selectedUsers.length > 0"
+                    class="mb-4 p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-brand-950 to-slate-900 border border-brand-500/50 text-white shadow-xl shadow-brand-950/20 flex flex-wrap items-center justify-between gap-3"
+                >
+                    <div class="flex items-center space-x-3">
+                        <span class="px-3 py-1 rounded-full bg-brand-600/30 border border-brand-500/40 text-rose-200 text-xs font-bold">
+                            {{ selectedUsers.length }} user(s) selected
+                        </span>
+                        <span class="text-xs text-slate-300 hidden sm:inline">Bulk actions for selected accounts:</span>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2">
+                        <!-- Convert to Teacher -->
+                        <button
+                            type="button"
+                            @click="bulkApply('change_role', { role: 'teacher' })"
+                            class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-brand-700 to-rose-700 hover:from-brand-600 hover:to-rose-600 text-white text-xs font-bold transition flex items-center space-x-1.5 shadow-md"
+                            title="Set role of all selected accounts to Teacher"
+                        >
+                            <Briefcase class="w-3.5 h-3.5 text-rose-300" />
+                            <span>Make Teacher</span>
+                        </button>
+
+                        <!-- Activate -->
+                        <button
+                            type="button"
+                            @click="bulkApply('set_status', { status: 'active' })"
+                            class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center space-x-1.5 shadow-md"
+                        >
+                            <UserCheck class="w-3.5 h-3.5" />
+                            <span>Activate</span>
+                        </button>
+
+                        <!-- Suspend -->
+                        <button
+                            type="button"
+                            @click="bulkApply('set_status', { status: 'suspended' })"
+                            class="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition flex items-center space-x-1.5 shadow-md"
+                        >
+                            <UserX class="w-3.5 h-3.5" />
+                            <span>Suspend</span>
+                        </button>
+
+                        <!-- Restore or Move to Trash -->
+                        <template v-if="currentTab === 'only_trashed'">
+                            <button
+                                type="button"
+                                @click="bulkApply('restore')"
+                                class="px-3 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold transition flex items-center space-x-1.5 shadow-md"
+                            >
+                                <RotateCcw class="w-3.5 h-3.5" />
+                                <span>Restore Selected</span>
+                            </button>
+                        </template>
+                        <template v-else>
+                            <button
+                                type="button"
+                                @click="bulkApply('move_to_trash')"
+                                class="px-3 py-1.5 rounded-xl bg-rose-800 hover:bg-rose-700 text-white text-xs font-bold transition flex items-center space-x-1.5 shadow-md"
+                            >
+                                <Trash2 class="w-3.5 h-3.5" />
+                                <span>Move to Trash</span>
+                            </button>
+                        </template>
+
+                        <button
+                            type="button"
+                            @click="deselectAll"
+                            class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium transition"
+                        >
+                            Clear Selection
+                        </button>
+                    </div>
+                </div>
+            </Transition>
+
             <!-- Users Table Card -->
             <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
                 <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
@@ -381,14 +508,28 @@ const submitImport = () => {
                             {{ currentTab === 'only_trashed' ? 'Soft-Deleted Users (Trash Bin)' : 'System Registered Accounts' }}
                         </span>
                     </h3>
-                    <span class="text-xs text-slate-400">Total: {{ users.total }} users</span>
+                    <div class="flex items-center space-x-3 text-xs text-slate-400">
+                        <span v-if="selectedUsers.length > 0" class="font-semibold text-brand-600 dark:text-brand-400">
+                            {{ selectedUsers.length }} selected
+                        </span>
+                        <span>Total: {{ users.total }} users</span>
+                    </div>
                 </div>
 
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs text-slate-600 dark:text-slate-300">
                         <thead class="bg-slate-50 dark:bg-slate-800/60 font-bold uppercase text-[11px] text-slate-500 border-b border-slate-200 dark:border-slate-800">
                             <tr>
-                                <th class="px-5 py-3">User / Name</th>
+                                <th class="px-4 py-3 w-10 text-center">
+                                    <input
+                                        type="checkbox"
+                                        :checked="isAllSelected"
+                                        @change="toggleSelectAll"
+                                        class="rounded border-slate-300 dark:border-slate-700 text-brand-700 focus:ring-brand-500 cursor-pointer w-4 h-4"
+                                        title="Select all accounts on this page"
+                                    />
+                                </th>
+                                <th class="px-5 py-3">User / Name (Click to Edit)</th>
                                 <th class="px-5 py-3">Role</th>
                                 <th class="px-5 py-3">Institution &amp; State</th>
                                 <th class="px-5 py-3">Trade Specialization</th>
@@ -398,7 +539,7 @@ const submitImport = () => {
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                             <tr v-if="users.data.length === 0">
-                                <td colspan="6" class="px-5 py-8 text-center text-slate-400 font-sans">
+                                <td colspan="7" class="px-5 py-8 text-center text-slate-400 font-sans">
                                     {{ currentTab === 'only_trashed' ? 'The Trash Bin is empty. No soft-deleted accounts found.' : 'No users match your query.' }}
                                 </td>
                             </tr>
@@ -406,22 +547,44 @@ const submitImport = () => {
                                 v-for="user in users.data"
                                 :key="user.id"
                                 :class="[
-                                    'hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition',
+                                    'transition',
+                                    selectedUsers.includes(user.id)
+                                        ? 'bg-brand-50/60 dark:bg-brand-950/40 ring-1 ring-inset ring-brand-500/30'
+                                        : 'hover:bg-slate-50/70 dark:hover:bg-slate-800/40',
                                     user.deleted_at ? 'bg-rose-50/20 dark:bg-rose-950/20' : ''
                                 ]"
                             >
+                                <td class="px-4 py-3.5 text-center">
+                                    <input
+                                        type="checkbox"
+                                        :value="user.id"
+                                        v-model="selectedUsers"
+                                        class="rounded border-slate-300 dark:border-slate-700 text-brand-700 focus:ring-brand-500 cursor-pointer w-4 h-4"
+                                    />
+                                </td>
                                 <td class="px-5 py-3.5">
                                     <div class="flex items-center space-x-2.5">
-                                        <div class="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-950/60 text-brand-800 dark:text-brand-300 font-bold flex items-center justify-center text-xs shrink-0">
+                                        <button
+                                            type="button"
+                                            @click="openEditModal(user)"
+                                            class="w-8 h-8 rounded-full bg-brand-100 hover:bg-brand-200 dark:bg-brand-950/60 dark:hover:bg-brand-900 text-brand-800 dark:text-brand-300 font-bold flex items-center justify-center text-xs shrink-0 transition"
+                                            title="Click to edit user profile"
+                                        >
                                             {{ user.name.charAt(0) }}
-                                        </div>
+                                        </button>
                                         <div>
-                                            <div class="font-bold text-slate-900 dark:text-white flex items-center space-x-1.5">
-                                                <span>{{ user.name }}</span>
-                                                <span v-if="user.deleted_at" class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 dark:bg-rose-900/60 dark:text-rose-300">
+                                            <button
+                                                type="button"
+                                                @click="openEditModal(user)"
+                                                class="font-bold text-slate-900 dark:text-white hover:text-brand-700 dark:hover:text-brand-400 flex items-center space-x-1.5 transition text-left group"
+                                                title="Click name to edit details"
+                                            >
+                                                <span class="group-hover:underline underline-offset-2">{{ user.name }}</span>
+                                                <Edit2 class="w-3 h-3 text-brand-600 dark:text-brand-400 opacity-60 group-hover:opacity-100 transition shrink-0" />
+                                                <span v-if="user.deleted_at" class="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 dark:bg-rose-900/60 dark:text-rose-300 ml-1">
                                                     Trashed
                                                 </span>
-                                            </div>
+                                            </button>
                                             <div class="text-[11px] text-slate-400">
                                                 {{ user.email }} · @{{ user.username || 'user' }}
                                                 <span v-if="user.phone"> · {{ user.phone }}</span>

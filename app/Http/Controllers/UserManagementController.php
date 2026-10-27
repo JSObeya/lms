@@ -333,6 +333,85 @@ class UserManagementController extends Controller
         return back()->with('success', "Bulk teacher import complete: {$importedCount} accounts created, {$skippedCount} existing accounts skipped.");
     }
 
+    /**
+     * Handle bulk actions on selected users (role change, status change, soft delete, restore).
+     */
+    public function bulkAction(Request $request): RedirectResponse
+    {
+        $this->authorizeAdmin();
+
+        $validated = $request->validate([
+            'user_ids' => 'required|array|min:1',
+            'user_ids.*' => 'integer',
+            'action' => 'required|in:change_role,set_status,move_to_trash,restore',
+            'role' => 'nullable|string|exists:roles,name',
+            'status' => 'nullable|in:active,suspended,pending',
+        ]);
+
+        $userIds = $validated['user_ids'];
+        $action = $validated['action'];
+        $affectedCount = 0;
+
+        if ($action === 'change_role') {
+            $roleName = $validated['role'] ?? 'teacher';
+            $role = Role::findByName($roleName, 'web');
+            $users = User::withTrashed()->whereIn('id', $userIds)->get();
+            foreach ($users as $user) {
+                $user->syncRoles([$role]);
+                $affectedCount++;
+            }
+            AuditLog::record('users_bulk_role_changed', User::class, null, [
+                'count' => $affectedCount,
+                'new_role' => $roleName,
+                'user_ids' => $userIds,
+            ]);
+
+            return back()->with('success', "Updated {$affectedCount} user(s) to role '{$roleName}'.");
+        }
+
+        if ($action === 'set_status') {
+            $status = $validated['status'] ?? 'active';
+            $affectedCount = User::withTrashed()->whereIn('id', $userIds)->update(['account_status' => $status]);
+            AuditLog::record('users_bulk_status_changed', User::class, null, [
+                'count' => $affectedCount,
+                'status' => $status,
+                'user_ids' => $userIds,
+            ]);
+
+            return back()->with('success', "Updated status to '{$status}' for {$affectedCount} user(s).");
+        }
+
+        if ($action === 'move_to_trash') {
+            $users = User::whereIn('id', $userIds)->where('id', '!=', auth()->id())->get();
+            foreach ($users as $user) {
+                $user->delete();
+                $affectedCount++;
+            }
+            AuditLog::record('users_bulk_soft_deleted', User::class, null, [
+                'count' => $affectedCount,
+                'user_ids' => $userIds,
+            ]);
+
+            return back()->with('success', "Moved {$affectedCount} user(s) to trash.");
+        }
+
+        if ($action === 'restore') {
+            $users = User::onlyTrashed()->whereIn('id', $userIds)->get();
+            foreach ($users as $user) {
+                $user->restore();
+                $affectedCount++;
+            }
+            AuditLog::record('users_bulk_restored', User::class, null, [
+                'count' => $affectedCount,
+                'user_ids' => $userIds,
+            ]);
+
+            return back()->with('success', "Restored {$affectedCount} user(s) from trash.");
+        }
+
+        return back();
+    }
+
     protected function authorizeAdmin(): void
     {
         if (! auth()->user()->hasRole(['super_admin', 'lms_admin'])) {

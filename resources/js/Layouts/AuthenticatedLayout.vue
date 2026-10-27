@@ -20,6 +20,7 @@ import {
     ShieldCheck
 } from 'lucide-vue-next';
 import ThemeToggle from '@/Components/ThemeToggle.vue';
+import PageActivityIndicator from '@/Components/PageActivityIndicator.vue';
 
 const showingNavigationDropdown = ref(false);
 const page = usePage();
@@ -40,6 +41,8 @@ const showFlash = ref(true);
 
 <template>
     <div class="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-800 dark:text-slate-100 flex flex-col">
+        <PageActivityIndicator />
+
         <!-- Top Navigation Bar -->
         <nav class="sticky top-0 z-40 bg-slate-900 border-b border-slate-800 text-white shadow-lg shadow-black/5">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
