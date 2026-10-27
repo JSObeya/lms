@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AssignmentController;
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\CourseSectionController;
 use App\Http\Controllers\DashboardController;
@@ -64,6 +65,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/courses/{course}', [CourseController::class, 'show'])->name('courses.show');
     Route::put('/courses/{course}', [CourseController::class, 'update'])->name('courses.update');
     Route::delete('/courses/{course}', [CourseController::class, 'destroy'])->name('courses.destroy');
+    Route::post('/courses/{id}/restore', [CourseController::class, 'restore'])->name('courses.restore');
     Route::get('/courses/{course}/builder', [CourseController::class, 'builder'])->name('courses.builder');
     Route::get('/courses/{course}/preview', [CourseController::class, 'preview'])->name('courses.preview');
 
@@ -92,6 +94,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/assignments/{assignment}', [AssignmentController::class, 'show'])->name('assignments.show');
     Route::put('/assignments/{assignment}', [AssignmentController::class, 'update'])->name('assignments.update');
     Route::delete('/assignments/{assignment}', [AssignmentController::class, 'destroy'])->name('assignments.destroy');
+    Route::post('/assignments/{id}/restore', [AssignmentController::class, 'restore'])->name('assignments.restore');
     Route::post('/assignments/{assignment}/submit', [SubmissionController::class, 'store'])->name('submissions.store');
     Route::get('/submission-attachments/{attachment}/download', [SubmissionController::class, 'downloadAttachment'])->name('submission-attachments.download');
 
@@ -101,6 +104,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/rubrics/{rubric}', [RubricController::class, 'show'])->name('rubrics.show');
     Route::post('/rubrics/{rubric}/duplicate', [RubricController::class, 'duplicate'])->name('rubrics.duplicate');
     Route::delete('/rubrics/{rubric}', [RubricController::class, 'destroy'])->name('rubrics.destroy');
+    Route::post('/rubrics/{id}/restore', [RubricController::class, 'restore'])->name('rubrics.restore');
 
     // Grading & Gradebook
     Route::get('/courses/{course}/gradebook', [GradingController::class, 'gradebook'])->name('gradebook.show');
@@ -120,8 +124,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // User Administration & Bulk 200 Teacher Import
     Route::get('/admin/users', [UserManagementController::class, 'index'])->name('admin.users.index');
+    Route::post('/admin/users', [UserManagementController::class, 'store'])->name('admin.users.store');
+    Route::put('/admin/users/{id}', [UserManagementController::class, 'update'])->name('admin.users.update');
+    Route::delete('/admin/users/{id}', [UserManagementController::class, 'destroy'])->name('admin.users.destroy');
+    Route::post('/admin/users/{id}/restore', [UserManagementController::class, 'restore'])->name('admin.users.restore');
+    Route::delete('/admin/users/{id}/force-delete', [UserManagementController::class, 'forceDelete'])->name('admin.users.force-delete');
     Route::post('/admin/users/{user}/toggle-status', [UserManagementController::class, 'toggleStatus'])->name('admin.users.toggle-status');
     Route::post('/admin/users/bulk-import', [UserManagementController::class, 'bulkImportTeachers'])->name('admin.users.bulk-import');
+
+    // System Audit Trail & Logs
+    Route::get('/admin/audit-logs', [AuditLogController::class, 'index'])->name('admin.audit-logs.index');
+    Route::post('/admin/audit-logs/clear-old', [AuditLogController::class, 'clearOld'])->name('admin.audit-logs.clear-old');
 });
 
 require __DIR__.'/auth.php';

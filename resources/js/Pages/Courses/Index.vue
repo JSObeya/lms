@@ -12,12 +12,15 @@ import {
     Table,
     Layers,
     Filter,
-    ChevronRight
+    ChevronRight,
+    Trash2,
+    RotateCcw
 } from 'lucide-vue-next';
 
 const props = defineProps({
     courses: Object,
     categories: Array,
+    trashed_count: Number,
     filters: Object,
 });
 
@@ -25,6 +28,7 @@ const search = ref(props.filters.search || '');
 const category = ref(props.filters.category || '');
 const mode = ref(props.filters.mode || '');
 const myCoursesOnly = ref(props.filters.my_courses === '1');
+const trashedFilter = ref(props.filters.trashed || '');
 
 const applyFilter = () => {
     router.get(
@@ -34,9 +38,21 @@ const applyFilter = () => {
             category: category.value || undefined,
             mode: mode.value || undefined,
             my_courses: myCoursesOnly.value ? '1' : undefined,
+            trashed: trashedFilter.value || undefined,
         },
         { preserveState: true, replace: true }
     );
+};
+
+const toggleTrash = () => {
+    trashedFilter.value = trashedFilter.value === 'only' ? '' : 'only';
+    applyFilter();
+};
+
+const restoreCourse = (courseId) => {
+    router.post(route('courses.restore', courseId), {}, {
+        preserveScroll: true,
+    });
 };
 </script>
 
@@ -110,6 +126,22 @@ const applyFilter = () => {
                         ]"
                     >
                         Mode B · Institutional
+                    </button>
+
+                    <!-- Trash Bin Toggle (Teachers & Admins) -->
+                    <button
+                        v-if="trashed_count > 0 || trashedFilter === 'only'"
+                        @click="toggleTrash"
+                        :class="[
+                            'px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center space-x-1.5',
+                            trashedFilter === 'only'
+                                ? 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 border border-rose-200 dark:border-rose-800'
+                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                        ]"
+                        title="View soft-deleted courses"
+                    >
+                        <Trash2 class="w-3.5 h-3.5" />
+                        <span>Trash ({{ trashed_count }})</span>
                     </button>
                 </div>
             </div>
@@ -219,8 +251,19 @@ const applyFilter = () => {
                             <Eye class="w-4 h-4" />
                         </Link>
 
+                        <!-- Trashed Course Restore Button -->
+                        <button
+                            v-if="course.deleted_at"
+                            @click="restoreCourse(course.id)"
+                            class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center space-x-1 shadow-sm transition"
+                            title="Restore this course from trash"
+                        >
+                            <RotateCcw class="w-3.5 h-3.5" />
+                            <span>Restore Course</span>
+                        </button>
+
                         <Link
-                            v-if="course.user_id === $page.props.auth.user.id || $page.props.auth.user.roles.includes('super_admin')"
+                            v-else-if="course.user_id === $page.props.auth.user.id || $page.props.auth.user.roles.includes('super_admin')"
                             :href="route('courses.builder', course.id)"
                             class="px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs flex items-center space-x-1"
                         >

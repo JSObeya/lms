@@ -16,7 +16,8 @@ import {
     CheckCircle2,
     AlertCircle,
     X,
-    BookMarked
+    BookMarked,
+    ShieldCheck
 } from 'lucide-vue-next';
 import ThemeToggle from '@/Components/ThemeToggle.vue';
 
@@ -135,7 +136,22 @@ const showFlash = ref(true);
                                 ]"
                             >
                                 <Users class="w-4 h-4" />
-                                <span>200 Teachers Management</span>
+                                <span>Users</span>
+                            </Link>
+
+                            <!-- System Audit Trail (Admins) -->
+                            <Link
+                                v-if="isAdmin"
+                                :href="route('admin.audit-logs.index')"
+                                :class="[
+                                    'px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2',
+                                    route().current('admin.audit-logs.*')
+                                        ? 'bg-teal-600/20 text-teal-400 border border-teal-500/30'
+                                        : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                                ]"
+                            >
+                                <ShieldCheck class="w-4 h-4 text-emerald-400" />
+                                <span>System Audit</span>
                             </Link>
                         </div>
                     </div>
@@ -189,6 +205,11 @@ const showFlash = ref(true);
                                     <DropdownLink :href="route('profile.edit')" class="flex items-center space-x-2">
                                         <User class="w-4 h-4 text-slate-400" />
                                         <span>Account Profile</span>
+                                    </DropdownLink>
+
+                                    <DropdownLink v-if="isAdmin" :href="route('admin.audit-logs.index')" class="flex items-center space-x-2 text-emerald-600 dark:text-emerald-400">
+                                        <ShieldCheck class="w-4 h-4" />
+                                        <span>System Audit Logs</span>
                                     </DropdownLink>
 
                                     <DropdownLink :href="route('trainee.guide')" class="flex items-center space-x-2">
@@ -272,7 +293,15 @@ const showFlash = ref(true);
                     :href="route('admin.users.index')"
                     class="block px-3 py-2 rounded-md text-base font-medium text-slate-200 hover:bg-slate-800"
                 >
-                    200 Teachers Management
+                    Users &amp; 200 Teachers Management
+                </Link>
+                <Link
+                    v-if="isAdmin"
+                    :href="route('admin.audit-logs.index')"
+                    class="block px-3 py-2 rounded-md text-base font-medium text-emerald-400 hover:bg-slate-800 flex items-center space-x-2"
+                >
+                    <ShieldCheck class="w-4 h-4 text-emerald-400" />
+                    <span>System Audit Trail</span>
                 </Link>
 
                 <Link

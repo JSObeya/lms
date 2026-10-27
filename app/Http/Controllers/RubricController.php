@@ -138,11 +138,35 @@ class RubricController extends Controller
         if ($rubric->assessments()->exists()) {
             $rubric->update(['is_active' => false]);
 
+            AuditLog::record('rubric_deactivated', Rubric::class, $rubric->id, [
+                'title' => $rubric->title,
+                'reason' => 'associated_assessments_exist',
+            ]);
+
             return back()->with('success', 'Rubric is associated with historical assessments. Deactivated instead of deleted.');
         }
 
+        $title = $rubric->title;
         $rubric->delete();
 
-        return back()->with('success', 'Rubric deleted.');
+        AuditLog::record('rubric_deleted', Rubric::class, $rubric->id, [
+            'title' => $title,
+        ]);
+
+        return back()->with('success', "Rubric '{$title}' moved to trash (soft deleted).");
+    }
+
+    public function restore(int $id): RedirectResponse
+    {
+        $rubric = Rubric::onlyTrashed()->findOrFail($id);
+        $this->authorize('update', $rubric);
+
+        $rubric->restore();
+
+        AuditLog::record('rubric_restored', Rubric::class, $rubric->id, [
+            'title' => $rubric->title,
+        ]);
+
+        return back()->with('success', "Rubric '{$rubric->title}' restored successfully.");
     }
 }

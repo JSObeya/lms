@@ -122,6 +122,12 @@ class AssignmentController extends Controller
 
         $assignment->update($validated);
 
+        AuditLog::record('assignment_updated', Assignment::class, $assignment->id, [
+            'title' => $assignment->title,
+            'max_score' => $assignment->max_score,
+            'status' => $assignment->status,
+        ]);
+
         return back()->with('success', 'Assignment updated.');
     }
 
@@ -130,9 +136,30 @@ class AssignmentController extends Controller
         $this->authorize('delete', $assignment);
 
         $courseId = $assignment->course_id;
+        $title = $assignment->title;
         $assignment->delete();
 
+        AuditLog::record('assignment_deleted', Assignment::class, $assignment->id, [
+            'title' => $title,
+            'course_id' => $courseId,
+        ]);
+
         return redirect()->route('courses.builder', $courseId)
-            ->with('success', 'Assignment deleted.');
+            ->with('success', "Assignment '{$title}' moved to trash (soft deleted).");
+    }
+
+    public function restore(int $id): RedirectResponse
+    {
+        $assignment = Assignment::onlyTrashed()->findOrFail($id);
+        $this->authorize('update', $assignment);
+
+        $assignment->restore();
+
+        AuditLog::record('assignment_restored', Assignment::class, $assignment->id, [
+            'title' => $assignment->title,
+            'course_id' => $assignment->course_id,
+        ]);
+
+        return back()->with('success', "Assignment '{$assignment->title}' restored successfully.");
     }
 }

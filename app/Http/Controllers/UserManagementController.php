@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Permission\Models\Role;
@@ -21,8 +22,20 @@ class UserManagementController extends Controller
         $query = User::with('roles')
             ->where('is_synthetic', false);
 
+        // Filter by trashed status: 'only_trashed', 'with_trashed', or default active
+        $trashedFilter = $request->input('trashed', 'active_only');
+        if ($trashedFilter === 'only_trashed') {
+            $query->onlyTrashed();
+        } elseif ($trashedFilter === 'with_trashed') {
+            $query->withTrashed();
+        }
+
         if ($request->filled('role')) {
             $query->role($request->role);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('account_status', $request->status);
         }
 
         if ($request->filled('search')) {
@@ -31,29 +44,221 @@ class UserManagementController extends Controller
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
                     ->orWhere('institution', 'like', "%{$search}%")
-                    ->orWhere('trade_specialization', 'like', "%{$search}%");
+                    ->orWhere('trade_specialization', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
             });
         }
 
-        $users = $query->latest()->paginate(15)->withQueryString();
+        $users = $query->latest('id')->paginate(15)->withQueryString();
         $roles = Role::all(['id', 'name']);
+
+        // Comprehensive User Administration Statistics
+        $stats = [
+            'total_active' => User::where('is_synthetic', false)->count(),
+            'total_suspended' => User::where('is_synthetic', false)->where('account_status', 'suspended')->count(),
+            'total_trashed' => User::where('is_synthetic', false)->onlyTrashed()->count(),
+            'teachers_count' => User::where('is_synthetic', false)->role('teacher')->count(),
+            'students_count' => User::where('is_synthetic', false)->role('student')->count(),
+            'admins_count' => User::where('is_synthetic', false)->role(['super_admin', 'lms_admin'])->count(),
+            'facilitators_count' => User::where('is_synthetic', false)->role('facilitator')->count(),
+        ];
 
         return Inertia::render('Admin/Users', [
             'users' => $users,
             'roles' => $roles,
-            'filters' => $request->only(['search', 'role']),
+            'stats' => $stats,
+            'filters' => $request->only(['search', 'role', 'status', 'trashed']),
         ]);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $this->authorizeAdmin();
+
+        $validated = $request->validate([
+            'first_name' => 'required|string|max:120',
+            'last_name' => 'required|string|max:120',
+            'email' => 'required|email|max:255|unique:users,email',
+            'phone' => 'nullable|string|max:50',
+            'institution' => 'nullable|string|max:255',
+            'state' => 'nullable|string|max:100',
+            'trade_specialization' => 'nullable|string|max:255',
+            'role' => 'required|string|exists:roles,name',
+            'account_status' => 'required|in:active,suspended,pending',
+            'password' => 'nullable|string|min:8',
+        ]);
+
+        $firstName = trim($validated['first_name']);
+        $lastName = trim($validated['last_name']);
+        $fullName = "{$firstName} {$lastName}";
+        $slug = Str::slug($fullName, '_');
+        $username = 'tvet_'.$slug.'_'.rand(10, 99);
+
+        $password = ! empty($validated['password'])
+            ? Hash::make($validated['password'])
+            : Hash::make('TVET_Teacher_2026!');
+
+        $user = User::create([
+            'name' => $fullName,
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'username' => $username,
+            'email' => strtolower($validated['email']),
+            'phone' => $validated['phone'] ?? null,
+            'institution' => $validated['institution'] ?? 'Government Technical College, Benue',
+            'state' => $validated['state'] ?? 'Benue',
+            'trade_specialization' => $validated['trade_specialization'] ?? 'Technical & Vocational Education',
+            'account_status' => $validated['account_status'],
+            'password' => $password,
+            'email_verified_at' => now(),
+        ]);
+
+        $user->assignRole($validated['role']);
+
+        AuditLog::record('user_created', User::class, $user->id, [
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $validated['role'],
+            'institution' => $user->institution,
+            'trade' => $user->trade_specialization,
+            'status' => $user->account_status,
+        ]);
+
+        return back()->with('success', "User account '{$user->name}' created successfully.");
+    }
+
+    public function update(Request $request, int $id): RedirectResponse
+    {
+        $this->authorizeAdmin();
+
+        $user = User::withTrashed()->findOrFail($id);
+
+        $validated = $request->validate([
+            'first_name' => 'required|string|max:120',
+            'last_name' => 'required|string|max:120',
+            'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'phone' => 'nullable|string|max:50',
+            'institution' => 'nullable|string|max:255',
+            'state' => 'nullable|string|max:100',
+            'trade_specialization' => 'nullable|string|max:255',
+            'role' => 'required|string|exists:roles,name',
+            'account_status' => 'required|in:active,suspended,pending',
+            'password' => 'nullable|string|min:8',
+        ]);
+
+        $firstName = trim($validated['first_name']);
+        $lastName = trim($validated['last_name']);
+        $fullName = "{$firstName} {$lastName}";
+
+        $oldAttributes = [
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->roles->first()?->name,
+            'status' => $user->account_status,
+            'trade' => $user->trade_specialization,
+        ];
+
+        $user->name = $fullName;
+        $user->first_name = $firstName;
+        $user->last_name = $lastName;
+        $user->email = strtolower($validated['email']);
+        $user->phone = $validated['phone'] ?? null;
+        $user->institution = $validated['institution'] ?? $user->institution;
+        $user->state = $validated['state'] ?? $user->state;
+        $user->trade_specialization = $validated['trade_specialization'] ?? $user->trade_specialization;
+        $user->account_status = $validated['account_status'];
+
+        if (! empty($validated['password'])) {
+            $user->password = Hash::make($validated['password']);
+        }
+
+        $user->save();
+        $user->syncRoles([$validated['role']]);
+
+        AuditLog::record('user_updated', User::class, $user->id, [
+            'previous' => $oldAttributes,
+            'updated' => [
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $validated['role'],
+                'status' => $user->account_status,
+                'trade' => $user->trade_specialization,
+                'password_reset' => ! empty($validated['password']),
+            ],
+        ]);
+
+        return back()->with('success', "User account '{$user->name}' updated successfully.");
+    }
+
+    public function destroy(int $id): RedirectResponse
+    {
+        $this->authorizeAdmin();
+
+        if ($id === auth()->id()) {
+            return back()->with('error', 'Security protection: You cannot delete your own administrator account.');
+        }
+
+        $user = User::findOrFail($id);
+        $userName = $user->name;
+        $userEmail = $user->email;
+
+        $user->delete(); // Soft delete
+
+        AuditLog::record('user_soft_deleted', User::class, $user->id, [
+            'name' => $userName,
+            'email' => $userEmail,
+        ]);
+
+        return back()->with('success', "User '{$userName}' has been moved to trash (soft deleted). The account can be restored at any time.");
+    }
+
+    public function restore(int $id): RedirectResponse
+    {
+        $this->authorizeAdmin();
+
+        $user = User::onlyTrashed()->findOrFail($id);
+        $user->restore();
+
+        AuditLog::record('user_restored', User::class, $user->id, [
+            'name' => $user->name,
+            'email' => $user->email,
+        ]);
+
+        return back()->with('success', "User account '{$user->name}' has been restored successfully.");
+    }
+
+    public function forceDelete(int $id): RedirectResponse
+    {
+        $this->authorizeSuperAdmin();
+
+        if ($id === auth()->id()) {
+            return back()->with('error', 'Security protection: You cannot permanently delete your own account.');
+        }
+
+        $user = User::onlyTrashed()->findOrFail($id);
+        $userName = $user->name;
+        $userEmail = $user->email;
+
+        $user->forceDelete();
+
+        AuditLog::record('user_force_deleted', User::class, $id, [
+            'name' => $userName,
+            'email' => $userEmail,
+        ]);
+
+        return back()->with('success', "User '{$userName}' has been permanently purged from the system.");
     }
 
     public function toggleStatus(User $user): RedirectResponse
     {
         $this->authorizeAdmin();
 
-        $newStatus = $user->account_status === 'active' ? 'suspended' : 'active';
+        $oldStatus = $user->account_status;
+        $newStatus = $oldStatus === 'active' ? 'suspended' : 'active';
         $user->update(['account_status' => $newStatus]);
 
         AuditLog::record('user_status_changed', User::class, $user->id, [
-            'old_status' => $user->account_status,
+            'old_status' => $oldStatus,
             'new_status' => $newStatus,
         ]);
 
@@ -74,10 +279,9 @@ class UserManagementController extends Controller
         $file = $request->file('csv_file');
         $handle = fopen($file->getRealPath(), 'r');
 
-        $header = fgetcsv($handle); // First Name, Last Name, Email, Phone, Institution, State, Trade Specialization
+        $header = fgetcsv($handle);
         $importedCount = 0;
         $skippedCount = 0;
-        $errors = [];
 
         $defaultPassword = Hash::make('TVET_Teacher_2026!');
 
@@ -94,8 +298,7 @@ class UserManagementController extends Controller
             $state = trim($row[5] ?? 'Benue');
             $trade = trim($row[6] ?? 'General Technical Education');
 
-            // Duplicate detection
-            if (User::where('email', $email)->exists()) {
+            if (User::withTrashed()->where('email', $email)->exists()) {
                 $skippedCount++;
 
                 continue;
@@ -134,6 +337,13 @@ class UserManagementController extends Controller
     {
         if (! auth()->user()->hasRole(['super_admin', 'lms_admin'])) {
             abort(403, 'Unauthorized access to user administration.');
+        }
+    }
+
+    protected function authorizeSuperAdmin(): void
+    {
+        if (! auth()->user()->hasRole('super_admin')) {
+            abort(403, 'Only Super Administrators can perform permanent deletions.');
         }
     }
 }

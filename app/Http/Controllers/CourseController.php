@@ -45,6 +45,11 @@ class CourseController extends Controller
             }
         }
 
+        // Filter by trashed status for teachers and admins
+        if ($request->trashed === 'only' && $request->user()->hasRole(['super_admin', 'lms_admin', 'teacher'])) {
+            $query->onlyTrashed();
+        }
+
         // Search
         if ($request->filled('search')) {
             $search = $request->search;
@@ -58,10 +63,18 @@ class CourseController extends Controller
         $courses = $query->latest()->paginate(12)->withQueryString();
         $categories = TradeCategory::where('is_active', true)->orderBy('order_index')->get(['id', 'name', 'slug', 'is_tvet_trade']);
 
+        $trashedCount = 0;
+        if ($request->user()->hasRole(['super_admin', 'lms_admin'])) {
+            $trashedCount = Course::onlyTrashed()->count();
+        } elseif ($request->user()->hasRole('teacher')) {
+            $trashedCount = Course::onlyTrashed()->where('user_id', $request->user()->id)->count();
+        }
+
         return Inertia::render('Courses/Index', [
             'courses' => $courses,
             'categories' => $categories,
-            'filters' => $request->only(['search', 'category', 'mode', 'my_courses']),
+            'trashed_count' => $trashedCount,
+            'filters' => $request->only(['search', 'category', 'mode', 'my_courses', 'trashed']),
         ]);
     }
 
@@ -242,8 +255,24 @@ class CourseController extends Controller
 
         $course->delete();
 
-        AuditLog::record('course_deleted', Course::class, $course->id);
+        AuditLog::record('course_deleted', Course::class, $course->id, [
+            'title' => $course->title,
+        ]);
 
-        return redirect()->route('courses.index')->with('success', 'Course archived.');
+        return redirect()->route('courses.index')->with('success', 'Course moved to trash (soft deleted).');
+    }
+
+    public function restore(int $id): RedirectResponse
+    {
+        $course = Course::onlyTrashed()->findOrFail($id);
+        $this->authorize('update', $course);
+
+        $course->restore();
+
+        AuditLog::record('course_restored', Course::class, $course->id, [
+            'title' => $course->title,
+        ]);
+
+        return back()->with('success', "Course '{$course->title}' restored successfully.");
     }
 }
