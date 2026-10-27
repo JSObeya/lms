@@ -42,6 +42,11 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+// Trainee User Manual & Guide (Publicly accessible for learners)
+Route::get('/trainee-guide', function () {
+    return Inertia::render('Trainee/Guide');
+})->name('trainee.guide');
+
 // Authenticated Routes
 Route::middleware(['auth', 'verified'])->group(function () {
     // Dynamic Role-Scoping Dashboard

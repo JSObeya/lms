@@ -8,7 +8,8 @@ import {
     CheckCircle2,
     Calendar,
     ChevronRight,
-    ArrowUpRight
+    ArrowUpRight,
+    BookMarked
 } from 'lucide-vue-next';
 
 defineProps({
@@ -109,8 +110,27 @@ defineProps({
                 </div>
             </div>
 
-            <!-- Right 1 Col: Upcoming Deadlines & Released Grades -->
+            <!-- Right 1 Col: Trainee Guide, Deadlines & Grades -->
             <div class="space-y-6">
+                <!-- Trainee Guide Promo Card -->
+                <div class="p-5 rounded-2xl bg-gradient-to-br from-brand-900 via-rose-950 to-slate-900 text-white shadow-sm border border-brand-800/60">
+                    <div class="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-brand-300 mb-2">
+                        <BookMarked class="w-4 h-4 text-brand-400" />
+                        <span>Trainee Handbook</span>
+                    </div>
+                    <h4 class="font-bold text-sm">Need Help with the LMS?</h4>
+                    <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+                        Read the step-by-step user manual covering passwords, themes, practical file submissions, and rubrics.
+                    </p>
+                    <Link
+                        :href="route('trainee.guide')"
+                        class="mt-3.5 inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-brand-700 hover:bg-brand-600 text-white font-semibold text-xs transition shadow-sm"
+                    >
+                        <span>Open Trainee Guide</span>
+                        <ChevronRight class="w-3.5 h-3.5" />
+                    </Link>
+                </div>
+
                 <!-- Upcoming Assignments -->
                 <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
                     <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center space-x-2 mb-4">

@@ -15,8 +15,10 @@ import {
     User,
     CheckCircle2,
     AlertCircle,
-    X
+    X,
+    BookMarked
 } from 'lucide-vue-next';
+import ThemeToggle from '@/Components/ThemeToggle.vue';
 
 const showingNavigationDropdown = ref(false);
 const page = usePage();
@@ -139,8 +141,21 @@ const showFlash = ref(true);
                     </div>
 
                     <!-- User Profile & Action Dropdown -->
-                    <div class="hidden md:flex items-center space-x-4">
-                        <div class="text-right hidden xl:block">
+                    <div class="hidden md:flex items-center space-x-3">
+                        <!-- Trainee Guide Link -->
+                        <Link
+                            :href="route('trainee.guide')"
+                            class="px-3 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition flex items-center space-x-1.5 text-xs font-medium border border-slate-700/60 shadow-sm"
+                            title="Trainee User Guide & Manual"
+                        >
+                            <BookMarked class="w-4 h-4 text-brand-400" />
+                            <span class="hidden lg:inline">Trainee Guide</span>
+                        </Link>
+
+                        <!-- Theme Toggle -->
+                        <ThemeToggle />
+
+                        <div class="text-right hidden xl:block pl-2 border-l border-slate-800">
                             <div class="text-xs font-semibold text-white leading-tight">
                                 {{ user.name }}
                             </div>
@@ -174,6 +189,11 @@ const showFlash = ref(true);
                                     <DropdownLink :href="route('profile.edit')" class="flex items-center space-x-2">
                                         <User class="w-4 h-4 text-slate-400" />
                                         <span>Account Profile</span>
+                                    </DropdownLink>
+
+                                    <DropdownLink :href="route('trainee.guide')" class="flex items-center space-x-2">
+                                        <BookMarked class="w-4 h-4 text-brand-500" />
+                                        <span>Trainee User Guide</span>
                                     </DropdownLink>
 
                                     <DropdownLink :href="route('logout')" method="post" as="button" class="flex items-center space-x-2 text-rose-600 dark:text-rose-400">
@@ -255,10 +275,21 @@ const showFlash = ref(true);
                     200 Teachers Management
                 </Link>
 
+                <Link
+                    :href="route('trainee.guide')"
+                    class="block px-3 py-2 rounded-md text-base font-medium text-brand-300 hover:bg-slate-800 flex items-center space-x-2"
+                >
+                    <BookMarked class="w-4 h-4 text-brand-400" />
+                    <span>Trainee User Guide &amp; Manual</span>
+                </Link>
+
                 <div class="pt-4 border-t border-slate-800">
-                    <div class="px-3 py-2">
-                        <div class="font-medium text-white">{{ user.name }}</div>
-                        <div class="text-xs text-slate-400">{{ user.email }}</div>
+                    <div class="px-3 py-2 flex items-center justify-between">
+                        <div>
+                            <div class="font-medium text-white">{{ user.name }}</div>
+                            <div class="text-xs text-slate-400">{{ user.email }}</div>
+                        </div>
+                        <ThemeToggle />
                     </div>
                     <Link
                         :href="route('profile.edit')"

@@ -1,6 +1,7 @@
 <script setup>
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
+import PasswordInput from '@/Components/PasswordInput.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { useForm } from '@inertiajs/vue3';
@@ -50,13 +51,13 @@ const updatePassword = () => {
             <div>
                 <InputLabel for="current_password" value="Current Password" />
 
-                <TextInput
+                <PasswordInput
                     id="current_password"
-                    ref="currentPasswordInput"
+                    name="current_password"
+                    class="mt-1"
                     v-model="form.current_password"
-                    type="password"
-                    class="mt-1 block w-full"
                     autocomplete="current-password"
+                    :has-error="!!form.errors.current_password"
                 />
 
                 <InputError
@@ -68,13 +69,13 @@ const updatePassword = () => {
             <div>
                 <InputLabel for="password" value="New Password" />
 
-                <TextInput
+                <PasswordInput
                     id="password"
-                    ref="passwordInput"
+                    name="password"
+                    class="mt-1"
                     v-model="form.password"
-                    type="password"
-                    class="mt-1 block w-full"
                     autocomplete="new-password"
+                    :has-error="!!form.errors.password"
                 />
 
                 <InputError :message="form.errors.password" class="mt-2" />
@@ -86,12 +87,13 @@ const updatePassword = () => {
                     value="Confirm Password"
                 />
 
-                <TextInput
+                <PasswordInput
                     id="password_confirmation"
+                    name="password_confirmation"
+                    class="mt-1"
                     v-model="form.password_confirmation"
-                    type="password"
-                    class="mt-1 block w-full"
                     autocomplete="new-password"
+                    :has-error="!!form.errors.password_confirmation"
                 />
 
                 <InputError

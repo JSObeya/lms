@@ -3,6 +3,7 @@ import Checkbox from '@/Components/Checkbox.vue';
 import GuestLayout from '@/Layouts/GuestLayout.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
+import PasswordInput from '@/Components/PasswordInput.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
@@ -57,13 +58,13 @@ const submit = () => {
             <div class="mt-4">
                 <InputLabel for="password" value="Password" />
 
-                <TextInput
+                <PasswordInput
                     id="password"
-                    type="password"
-                    class="mt-1 block w-full"
+                    class="mt-1"
                     v-model="form.password"
                     required
                     autocomplete="current-password"
+                    :has-error="!!form.errors.password"
                 />
 
                 <InputError class="mt-2" :message="form.errors.password" />

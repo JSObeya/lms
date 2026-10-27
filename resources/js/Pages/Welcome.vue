@@ -18,8 +18,10 @@ import {
     Wrench,
     Scissors,
     Layers,
-    CheckCircle2
+    CheckCircle2,
+    BookMarked
 } from 'lucide-vue-next';
+import ThemeToggle from '@/Components/ThemeToggle.vue';
 
 defineProps({
     canLogin: Boolean,
@@ -53,11 +55,23 @@ const getTradeIcon = (iconName) => {
                     <ApplicationLogo />
                 </Link>
 
-                <nav class="flex items-center space-x-4">
+                <nav class="flex items-center space-x-3 sm:space-x-4">
+                    <!-- Trainee Guide Link -->
+                    <Link
+                        :href="route('trainee.guide')"
+                        class="px-3 py-2 text-xs sm:text-sm font-semibold text-brand-300 hover:text-white transition flex items-center space-x-1.5 rounded-lg hover:bg-slate-800/80 border border-brand-800/50"
+                    >
+                        <BookMarked class="w-4 h-4 text-brand-400" />
+                        <span>Trainee Guide</span>
+                    </Link>
+
+                    <!-- Theme Toggle -->
+                    <ThemeToggle />
+
                     <template v-if="$page.props.auth?.user">
                         <Link
                             :href="route('dashboard')"
-                            class="px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-sm shadow-lg shadow-teal-500/20 transition flex items-center space-x-1.5"
+                            class="px-5 py-2.5 rounded-xl bg-brand-700 hover:bg-brand-600 text-white font-bold text-sm shadow-lg shadow-brand-900/30 transition flex items-center space-x-1.5"
                         >
                             <span>Enter Dashboard</span>
                             <ArrowRight class="w-4 h-4" />
@@ -66,15 +80,15 @@ const getTradeIcon = (iconName) => {
                     <template v-else>
                         <Link
                             :href="route('login')"
-                            class="px-4 py-2 text-sm font-semibold text-slate-300 hover:text-white transition"
+                            class="hidden sm:inline-block px-4 py-2 text-sm font-semibold text-slate-300 hover:text-white transition"
                         >
                             Sign In
                         </Link>
                         <Link
                             :href="route('login')"
-                            class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-teal-500 to-blue-600 hover:from-teal-400 hover:to-blue-500 text-white font-bold text-sm shadow-lg shadow-teal-500/20 transition flex items-center space-x-1.5"
+                            class="px-4 sm:px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-700 via-rose-800 to-slate-900 hover:from-brand-600 hover:to-slate-800 text-white font-bold text-xs sm:text-sm shadow-lg shadow-brand-900/40 border border-brand-600/40 transition flex items-center space-x-1.5"
                         >
-                            <span>Teacher Studio Login</span>
+                            <span>Studio Login</span>
                             <ArrowRight class="w-4 h-4" />
                         </Link>
                     </template>
@@ -217,17 +231,23 @@ const getTradeIcon = (iconName) => {
 
         <!-- Footer -->
         <footer class="mt-auto border-t border-slate-900 bg-slate-950 py-10 text-xs text-slate-500">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
                 <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 rounded-lg bg-teal-600 text-white font-bold flex items-center justify-center text-sm">G</div>
-                    <div>
-                        <div class="font-bold text-slate-200">Greg &amp; Co. ICT Ltd</div>
-                        <div>Makurdi, Benue State, Nigeria</div>
-                    </div>
+                    <ApplicationLogo size="sm" />
+                </div>
+
+                <div class="flex items-center space-x-6 text-slate-400">
+                    <Link :href="route('trainee.guide')" class="hover:text-white transition flex items-center space-x-1.5">
+                        <BookMarked class="w-4 h-4 text-brand-400" />
+                        <span>Trainee User Manual</span>
+                    </Link>
+                    <Link :href="route('login')" class="hover:text-white transition">
+                        Portal Login
+                    </Link>
                 </div>
 
                 <div class="text-center md:text-right">
-                    <p>Production domain: <span class="text-teal-400">https://lms.gregicthub.com</span></p>
+                    <p>Production domain: <a href="https://lms.gregicthub.com" class="text-brand-400 hover:underline">https://lms.gregicthub.com</a></p>
                     <p class="mt-1">In compliance with Nigeria Data Protection Act (NDPA 2023).</p>
                 </div>
             </div>
