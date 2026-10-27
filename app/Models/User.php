@@ -141,6 +141,46 @@ class User extends Authenticatable
     }
 
     /**
+     * TVET Competency-Based Lessons created by this teacher.
+     */
+    public function competencyLessons(): HasMany
+    {
+        return $this->hasMany(CompetencyLesson::class, 'user_id');
+    }
+
+    /**
+     * TVET Pedagogy Studio Progress (Days 9 & 10).
+     */
+    public function pedagogyProgress(): HasOne
+    {
+        return $this->hasOne(PedagogyTrainingProgress::class, 'user_id');
+    }
+
+    /**
+     * Inclusive Lesson Adaptations authored by this teacher.
+     */
+    public function inclusiveAdaptations(): HasMany
+    {
+        return $this->hasMany(InclusiveLessonAdaptation::class, 'user_id');
+    }
+
+    /**
+     * Pedagogy reviews submitted as facilitator.
+     */
+    public function pedagogyReviewsGiven(): HasMany
+    {
+        return $this->hasMany(PedagogyReview::class, 'facilitator_id');
+    }
+
+    /**
+     * Pedagogy reviews received as teacher.
+     */
+    public function pedagogyReviewsReceived(): HasMany
+    {
+        return $this->hasMany(PedagogyReview::class, 'teacher_id');
+    }
+
+    /**
      * Role checks.
      */
     public function isSuperAdmin(): bool

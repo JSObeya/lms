@@ -14,6 +14,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ResourceController;
 use App\Http\Controllers\RubricController;
 use App\Http\Controllers\SubmissionController;
+use App\Http\Controllers\TvetPedagogyController;
 use App\Http\Controllers\UserManagementController;
 use App\Models\Course;
 use App\Models\TradeCategory;
@@ -137,6 +138,41 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // System Audit Trail & Logs
     Route::get('/admin/audit-logs', [AuditLogController::class, 'index'])->name('admin.audit-logs.index');
     Route::post('/admin/audit-logs/clear-old', [AuditLogController::class, 'clearOld'])->name('admin.audit-logs.clear-old');
+
+    // TVET Pedagogy & Instructional Design Studio (Days 9 & 10)
+    Route::prefix('pedagogy')->name('pedagogy.')->group(function () {
+        Route::get('/studio', [TvetPedagogyController::class, 'studio'])->name('studio');
+
+        // Day 9: Competency-Based Lesson Builder
+        Route::get('/lessons', [TvetPedagogyController::class, 'lessonBuilderIndex'])->name('lessons.index');
+        Route::get('/lessons/builder', [TvetPedagogyController::class, 'lessonBuilderCreate'])->name('lessons.builder');
+        Route::get('/lessons/create', [TvetPedagogyController::class, 'lessonBuilderCreate'])->name('lessons.create');
+        Route::post('/lessons', [TvetPedagogyController::class, 'lessonBuilderStore'])->name('lessons.store');
+        Route::get('/lessons/{lesson}/edit', [TvetPedagogyController::class, 'lessonBuilderEdit'])->name('lessons.edit');
+        Route::put('/lessons/{lesson}', [TvetPedagogyController::class, 'lessonBuilderUpdate'])->name('lessons.update');
+        Route::post('/lessons/{lesson}/duplicate', [TvetPedagogyController::class, 'duplicateLesson'])->name('lessons.duplicate');
+        Route::get('/lessons/{lesson}/export', [TvetPedagogyController::class, 'exportLesson'])->name('lessons.export');
+
+        // Day 10: Inclusive Lesson Designer
+        Route::get('/inclusive-designer', [TvetPedagogyController::class, 'inclusiveDesignerIndex'])->name('inclusive-designer.index');
+        Route::get('/inclusive-designer/{lesson}', [TvetPedagogyController::class, 'inclusiveDesignerEdit'])->name('inclusive-designer.edit');
+        Route::put('/inclusive-designer/{lesson}', [TvetPedagogyController::class, 'inclusiveDesignerUpdate'])->name('inclusive-designer.update');
+        Route::post('/inclusive-designer/{lesson}/submit', [TvetPedagogyController::class, 'submitInclusiveLesson'])->name('inclusive-designer.submit');
+
+        // Demonstration & Project Planner
+        Route::get('/demo-project-planner/{lesson?}', [TvetPedagogyController::class, 'demoProjectPlanner'])->name('demo-project-planner');
+
+        // Workshop Management Planner
+        Route::get('/workshop-planner/{lesson?}', [TvetPedagogyController::class, 'workshopPlanner'])->name('workshop-planner');
+
+        // Interactive Assessment & Practice Wizards
+        Route::get('/day9-wizard', [TvetPedagogyController::class, 'day9Wizard'])->name('day9-wizard');
+        Route::get('/day10-wizard', [TvetPedagogyController::class, 'day10Wizard'])->name('day10-wizard');
+    });
+
+    // Facilitator Assessment Portal (Days 9 & 10)
+    Route::get('/facilitator/pedagogy-reviews', [TvetPedagogyController::class, 'facilitatorReviewIndex'])->name('facilitator.pedagogy-reviews.index');
+    Route::post('/facilitator/pedagogy-reviews/{lesson}', [TvetPedagogyController::class, 'facilitatorReviewStore'])->name('facilitator.pedagogy-reviews.store');
 });
 
 require __DIR__.'/auth.php';

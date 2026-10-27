@@ -14,7 +14,11 @@ import {
     Sparkles,
     Eye,
     ChevronRight,
-    Table
+    Table,
+    Compass,
+    Layers,
+    Settings2,
+    Briefcase
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -158,6 +162,61 @@ const generateLearner = () => {
                     <div class="text-2xl font-black text-slate-900 dark:text-white">{{ day8_progress.percentage }}%</div>
                     <div class="text-xs text-slate-500 dark:text-slate-400">TVET Practice Competency</div>
                 </div>
+            </div>
+        </div>
+
+        <!-- TVET Pedagogy & Instructional Design Studio Quick Hub (Days 9 & 10) -->
+        <div class="mb-8 p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-rose-950 to-slate-900 text-white shadow-xl border border-rose-500/30 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div class="max-w-2xl">
+                <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 text-xs font-bold uppercase tracking-wider mb-2 border border-rose-500/30">
+                    <Sparkles class="w-3.5 h-3.5" />
+                    <span>Days 9 &amp; 10 TVET Pedagogy Studio</span>
+                </div>
+                <h3 class="text-xl font-bold text-white">Competency-Based Technical Lesson &amp; Inclusive Designer</h3>
+                <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+                    Author practical technical lessons aligned with official NBTE standards, plan 4-step demonstrations, apply UDL principles, design 3-tier activities, and schedule workshop equipment rotations.
+                </p>
+                <div class="flex flex-wrap items-center gap-2 mt-4">
+                    <Link
+                        :href="route('pedagogy.studio')"
+                        class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs transition shadow-sm"
+                    >
+                        <Layers class="w-3.5 h-3.5" />
+                        <span>Studio Overview</span>
+                    </Link>
+                    <Link
+                        :href="route('pedagogy.lessons.builder')"
+                        class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-semibold text-xs border border-amber-500/30 transition"
+                    >
+                        <Compass class="w-3.5 h-3.5" />
+                        <span>Day 9 Lesson Builder</span>
+                    </Link>
+                    <Link
+                        :href="route('pedagogy.inclusive-designer.index')"
+                        class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-semibold text-xs border border-rose-500/30 transition"
+                    >
+                        <Wand2 class="w-3.5 h-3.5" />
+                        <span>Day 10 Inclusive Designer</span>
+                    </Link>
+                    <Link
+                        :href="route('pedagogy.workshop-planner')"
+                        class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs border border-slate-700 transition"
+                    >
+                        <Settings2 class="w-3.5 h-3.5" />
+                        <span>Workshop Planner</span>
+                    </Link>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center gap-3">
+                <Link
+                    :href="route('portfolio.index')"
+                    class="p-4 rounded-xl bg-slate-800/80 border border-slate-700 text-center text-xs hover:border-teal-500/50 transition w-full sm:w-auto"
+                >
+                    <Briefcase class="w-6 h-6 mx-auto text-teal-400 mb-1" />
+                    <div class="font-bold text-white">Teaching Portfolio</div>
+                    <div class="text-[10px] text-slate-400">View Verified Artifacts</div>
+                </Link>
             </div>
         </div>
 

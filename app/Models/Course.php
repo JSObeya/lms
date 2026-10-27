@@ -113,6 +113,11 @@ class Course extends Model
         return $this->hasMany(TvetCompetency::class);
     }
 
+    public function competencyLessons(): HasMany
+    {
+        return $this->hasMany(CompetencyLesson::class);
+    }
+
     /**
      * Query Scopes.
      */

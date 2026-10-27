@@ -17,7 +17,13 @@ import {
     AlertCircle,
     X,
     BookMarked,
-    ShieldCheck
+    ShieldCheck,
+    Layers,
+    Compass,
+    Wrench,
+    Settings2,
+    ChevronDown,
+    Sparkles
 } from 'lucide-vue-next';
 import ThemeToggle from '@/Components/ThemeToggle.vue';
 import PageActivityIndicator from '@/Components/PageActivityIndicator.vue';
@@ -81,20 +87,104 @@ const showFlash = ref(true);
                                 <span>Courses</span>
                             </Link>
 
-                            <!-- Day 8 Practice Wizard (Trainee Teachers & Facilitators) -->
+                            <!-- TVET Pedagogy Studio Menu Dropdown -->
+                            <div v-if="isTeacher || isFacilitator || isAdmin" class="relative">
+                                <Dropdown align="left" width="64">
+                                    <template #trigger>
+                                        <button
+                                            type="button"
+                                            :class="[
+                                                'px-3 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-1.5',
+                                                route().current('pedagogy.*')
+                                                    ? 'bg-rose-900/40 text-rose-300 border border-rose-500/40 shadow-sm shadow-rose-900/20'
+                                                    : 'text-rose-200/90 hover:text-white hover:bg-slate-800'
+                                            ]"
+                                        >
+                                            <Sparkles class="w-4 h-4 text-rose-400" />
+                                            <span>TVET Pedagogy Studio</span>
+                                            <span class="bg-rose-500/20 text-rose-300 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">Days 9-10</span>
+                                            <ChevronDown class="w-3.5 h-3.5 ml-0.5 opacity-70" />
+                                        </button>
+                                    </template>
+
+                                    <template #content>
+                                        <div class="px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 dark:border-slate-800">
+                                            IDEAS-TVET Instructional Design
+                                        </div>
+                                        <DropdownLink :href="route('pedagogy.studio')" class="flex items-center space-x-2">
+                                            <Layers class="w-4 h-4 text-rose-500" />
+                                            <div>
+                                                <div class="font-medium">TVET Pedagogy Studio</div>
+                                                <div class="text-[11px] text-slate-400">Progressive Days 8–12 Overview Hub</div>
+                                            </div>
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('pedagogy.lessons.builder')" class="flex items-center space-x-2">
+                                            <Compass class="w-4 h-4 text-amber-500" />
+                                            <div>
+                                                <div class="font-medium">Competency-Based Lesson Builder</div>
+                                                <div class="text-[11px] text-slate-400">Day 9 Practical 4-Step Builder</div>
+                                            </div>
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('pedagogy.inclusive-designer.index')" class="flex items-center space-x-2">
+                                            <Wand2 class="w-4 h-4 text-teal-500" />
+                                            <div>
+                                                <div class="font-medium">Inclusive Lesson Designer</div>
+                                                <div class="text-[11px] text-slate-400">Day 10 UDL, Differentiated &amp; Safe</div>
+                                            </div>
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('pedagogy.demo-project-planner')" class="flex items-center space-x-2">
+                                            <Wrench class="w-4 h-4 text-blue-500" />
+                                            <div>
+                                                <div class="font-medium">Demonstration and Project Planner</div>
+                                                <div class="text-[11px] text-slate-400">PBL &amp; Fault Diagnosis Scenarios</div>
+                                            </div>
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('pedagogy.workshop-planner')" class="flex items-center space-x-2">
+                                            <Settings2 class="w-4 h-4 text-emerald-500" />
+                                            <div>
+                                                <div class="font-medium">Workshop Management Planner</div>
+                                                <div class="text-[11px] text-slate-400">Equipment Rotation &amp; Group Matrix</div>
+                                            </div>
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('portfolio.index')" class="flex items-center space-x-2 border-t border-slate-100 dark:border-slate-800">
+                                            <Briefcase class="w-4 h-4 text-purple-500" />
+                                            <div>
+                                                <div class="font-medium">My Teaching Portfolio</div>
+                                                <div class="text-[11px] text-slate-400">Verified Teaching Artifacts &amp; Plans</div>
+                                            </div>
+                                        </DropdownLink>
+                                    </template>
+                                </Dropdown>
+                            </div>
+
+                            <!-- Day 8 Practice Wizard -->
                             <Link
                                 v-if="isTeacher || isFacilitator || isAdmin"
                                 :href="route('day8.wizard')"
                                 :class="[
-                                    'px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2',
+                                    'px-3 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-1.5',
                                     route().current('day8.*')
                                         ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm shadow-amber-500/10'
                                         : 'text-amber-300/80 hover:text-amber-200 hover:bg-slate-800'
                                 ]"
                             >
                                 <Wand2 class="w-4 h-4 text-amber-400" />
-                                <span>Day 8 Practical Wizard</span>
-                                <span class="bg-amber-400/20 text-amber-300 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">TVET</span>
+                                <span>Day 8 Wizard</span>
+                            </Link>
+
+                            <!-- Facilitator Reviews Portal -->
+                            <Link
+                                v-if="isFacilitator || isAdmin"
+                                :href="route('facilitator.pedagogy-reviews.index')"
+                                :class="[
+                                    'px-3 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-1.5',
+                                    route().current('facilitator.pedagogy-reviews.*')
+                                        ? 'bg-purple-600/20 text-purple-300 border border-purple-500/40'
+                                        : 'text-purple-300/80 hover:text-white hover:bg-slate-800'
+                                ]"
+                            >
+                                <Award class="w-4 h-4 text-purple-400" />
+                                <span>Facilitator Reviews</span>
                             </Link>
 
                             <!-- Rubric Designer -->
@@ -102,7 +192,7 @@ const showFlash = ref(true);
                                 v-if="isTeacher || isAdmin"
                                 :href="route('rubrics.index')"
                                 :class="[
-                                    'px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2',
+                                    'px-3 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-1.5',
                                     route().current('rubrics.*')
                                         ? 'bg-teal-600/20 text-teal-400 border border-teal-500/30'
                                         : 'text-slate-300 hover:text-white hover:bg-slate-800'
@@ -112,19 +202,19 @@ const showFlash = ref(true);
                                 <span>Rubrics</span>
                             </Link>
 
-                            <!-- Digital Teaching Portfolio -->
+                            <!-- My Teaching Portfolio (Direct link) -->
                             <Link
                                 v-if="isTeacher"
                                 :href="route('portfolio.index')"
                                 :class="[
-                                    'px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2',
+                                    'px-3 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-1.5',
                                     route().current('portfolio.*')
                                         ? 'bg-teal-600/20 text-teal-400 border border-teal-500/30'
                                         : 'text-slate-300 hover:text-white hover:bg-slate-800'
                                 ]"
                             >
                                 <Briefcase class="w-4 h-4" />
-                                <span>Portfolio</span>
+                                <span>My Teaching Portfolio</span>
                             </Link>
 
                             <!-- User Administration (Admins) -->
@@ -270,6 +360,49 @@ const showFlash = ref(true);
                 >
                     Courses
                 </Link>
+
+                <!-- TVET Pedagogy Studio Links (Mobile) -->
+                <div v-if="isTeacher || isFacilitator || isAdmin" class="pt-2 pb-1 border-t border-slate-800/80">
+                    <div class="px-3 text-[11px] font-bold uppercase tracking-wider text-rose-400 mb-1">
+                        TVET Pedagogy &amp; Instructional Design Studio
+                    </div>
+                    <Link
+                        :href="route('pedagogy.studio')"
+                        class="block px-3 py-1.5 rounded-md text-sm font-medium text-rose-300 hover:bg-slate-800 flex items-center space-x-2"
+                    >
+                        <Sparkles class="w-4 h-4 text-rose-400" />
+                        <span>TVET Pedagogy Studio</span>
+                    </Link>
+                    <Link
+                        :href="route('pedagogy.lessons.builder')"
+                        class="block px-3 py-1.5 rounded-md text-sm font-medium text-amber-300 hover:bg-slate-800 flex items-center space-x-2"
+                    >
+                        <Compass class="w-4 h-4 text-amber-400" />
+                        <span>Competency-Based Lesson Builder</span>
+                    </Link>
+                    <Link
+                        :href="route('pedagogy.inclusive-designer.index')"
+                        class="block px-3 py-1.5 rounded-md text-sm font-medium text-teal-300 hover:bg-slate-800 flex items-center space-x-2"
+                    >
+                        <Wand2 class="w-4 h-4 text-teal-400" />
+                        <span>Inclusive Lesson Designer</span>
+                    </Link>
+                    <Link
+                        :href="route('pedagogy.demo-project-planner')"
+                        class="block px-3 py-1.5 rounded-md text-sm font-medium text-blue-300 hover:bg-slate-800 flex items-center space-x-2"
+                    >
+                        <Wrench class="w-4 h-4 text-blue-400" />
+                        <span>Demonstration and Project Planner</span>
+                    </Link>
+                    <Link
+                        :href="route('pedagogy.workshop-planner')"
+                        class="block px-3 py-1.5 rounded-md text-sm font-medium text-emerald-300 hover:bg-slate-800 flex items-center space-x-2"
+                    >
+                        <Settings2 class="w-4 h-4 text-emerald-400" />
+                        <span>Workshop Management Planner</span>
+                    </Link>
+                </div>
+
                 <Link
                     v-if="isTeacher || isFacilitator || isAdmin"
                     :href="route('day8.wizard')"
@@ -277,6 +410,16 @@ const showFlash = ref(true);
                 >
                     Day 8 Practical Wizard (TVET)
                 </Link>
+
+                <Link
+                    v-if="isFacilitator || isAdmin"
+                    :href="route('facilitator.pedagogy-reviews.index')"
+                    class="block px-3 py-2 rounded-md text-base font-medium text-purple-300 hover:bg-slate-800 flex items-center space-x-2"
+                >
+                    <Award class="w-4 h-4 text-purple-400" />
+                    <span>Facilitator Reviews Portal</span>
+                </Link>
+
                 <Link
                     v-if="isTeacher || isAdmin"
                     :href="route('rubrics.index')"
@@ -287,9 +430,10 @@ const showFlash = ref(true);
                 <Link
                     v-if="isTeacher"
                     :href="route('portfolio.index')"
-                    class="block px-3 py-2 rounded-md text-base font-medium text-slate-200 hover:bg-slate-800"
+                    class="block px-3 py-2 rounded-md text-base font-medium text-slate-200 hover:bg-slate-800 flex items-center space-x-2"
                 >
-                    Portfolio
+                    <Briefcase class="w-4 h-4 text-teal-400" />
+                    <span>My Teaching Portfolio</span>
                 </Link>
                 <Link
                     v-if="isAdmin"
