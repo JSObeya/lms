@@ -1,0 +1,54 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class CourseSection extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'course_id',
+        'title',
+        'description',
+        'order_index',
+        'is_published',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'order_index' => 'integer',
+            'is_published' => 'boolean',
+        ];
+    }
+
+    public function course(): BelongsTo
+    {
+        return $this->belongsTo(Course::class);
+    }
+
+    public function lessons(): HasMany
+    {
+        return $this->hasMany(Lesson::class)->orderBy('order_index');
+    }
+
+    public function objectives(): HasMany
+    {
+        return $this->hasMany(LearningObjective::class)->orderBy('order_index');
+    }
+
+    public function resources(): HasMany
+    {
+        return $this->hasMany(Resource::class)->orderBy('order_index');
+    }
+
+    public function assignments(): HasMany
+    {
+        return $this->hasMany(Assignment::class);
+    }
+}
