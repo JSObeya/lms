@@ -18,7 +18,23 @@ import { ArrowLeft } from 'lucide-vue-next';
                 <ArrowLeft class="w-4 h-4 mr-1.5 transition-transform group-hover:-translate-x-0.5" />
                 Back to Home
             </Link>
-            <ThemeToggle />
+            <div class="flex items-center space-x-2.5">
+                <Link
+                    v-if="!route().current('register')"
+                    :href="route('register')"
+                    class="text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-brand-700 dark:hover:text-brand-400 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 hover:border-brand-600 transition"
+                >
+                    Register
+                </Link>
+                <Link
+                    v-else
+                    :href="route('login')"
+                    class="text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-brand-700 dark:hover:text-brand-400 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 hover:border-brand-600 transition"
+                >
+                    Sign In
+                </Link>
+                <ThemeToggle />
+            </div>
         </div>
 
         <!-- Center Login/Auth Card -->

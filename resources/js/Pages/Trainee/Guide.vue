@@ -25,7 +25,8 @@ import {
     ChevronRight,
     Briefcase,
     Sparkles,
-    User
+    User,
+    UserPlus
 } from 'lucide-vue-next';
 
 const page = usePage();
@@ -47,12 +48,12 @@ const sections = [
         summary: 'Learn how to sign in, use the new password visibility eye toggle, and prevent login errors.',
         content: [
             {
-                step: 'Step 1: Open the Portal',
-                text: 'Navigate to https://lms.gregicthub.com in any modern browser on your phone, tablet, or laptop computer.'
+                step: 'Step 1: Open Portal & Choose Login or Register',
+                text: 'Navigate to https://lms.gregicthub.com. If you already have credentials, click "Sign In". If you are a new trainee, click "Register" to create your personal trainee account.'
             },
             {
-                step: 'Step 2: Enter Your Credentials',
-                text: 'Type your official institutional email address provided by Greg & Co. ICT or your TVET training institution.'
+                step: 'Step 2: Enter Your Credentials or Sign Up Details',
+                text: 'Type your official institutional email address and secure password. For new accounts, provide your full name, email, and confirmed password.'
             },
             {
                 step: 'Step 3: Use the Show / Hide Password Toggle',
@@ -255,6 +256,13 @@ const currentSection = computed(() => {
                         </Link>
                     </template>
                     <template v-else>
+                        <Link
+                            :href="route('register')"
+                            class="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-semibold text-xs transition flex items-center space-x-1.5 border border-slate-300 dark:border-slate-700 shadow-sm"
+                        >
+                            <UserPlus class="w-3.5 h-3.5 text-brand-600 dark:text-brand-400" />
+                            <span>Register</span>
+                        </Link>
                         <Link
                             :href="route('login')"
                             class="px-4 py-2 rounded-xl bg-brand-700 hover:bg-brand-800 text-white font-semibold text-xs transition flex items-center space-x-1.5 shadow-sm"

@@ -447,7 +447,7 @@ class LmsDemonstrationSeeder extends Seeder
                         'slug' => Str::slug($trade['title']),
                         'trade_category_id' => $cat->id,
                         'user_id' => $teacher->id,
-                        'summary' => 'Comprehensive technical training module for ' . $cat->name . '.',
+                        'summary' => 'Comprehensive technical training module for '.$cat->name.'.',
                         'description' => 'Hands-on practical training aligned with national occupational standards.',
                         'duration' => '30 Hours',
                         'difficulty_level' => 'intermediate',

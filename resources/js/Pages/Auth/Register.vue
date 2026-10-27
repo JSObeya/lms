@@ -6,6 +6,7 @@ import PasswordInput from '@/Components/PasswordInput.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { ArrowRight, UserPlus } from 'lucide-vue-next';
 
 const form = useForm({
     name: '',
@@ -25,9 +26,14 @@ const submit = () => {
     <GuestLayout>
         <Head title="Register" />
 
+        <div class="mb-6 text-center">
+            <h1 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Create an Account</h1>
+            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Join the IDEAS–TVET Practical Learning Portal</p>
+        </div>
+
         <form @submit.prevent="submit">
             <div>
-                <InputLabel for="name" value="Name" />
+                <InputLabel for="name" value="Full Name" />
 
                 <TextInput
                     id="name"
@@ -37,13 +43,14 @@ const submit = () => {
                     required
                     autofocus
                     autocomplete="name"
+                    placeholder="e.g. John Doe"
                 />
 
                 <InputError class="mt-2" :message="form.errors.name" />
             </div>
 
             <div class="mt-4">
-                <InputLabel for="email" value="Email" />
+                <InputLabel for="email" value="Email Address" />
 
                 <TextInput
                     id="email"
@@ -52,6 +59,7 @@ const submit = () => {
                     v-model="form.email"
                     required
                     autocomplete="username"
+                    placeholder="trainee@gregicthub.com"
                 />
 
                 <InputError class="mt-2" :message="form.errors.email" />
@@ -94,21 +102,28 @@ const submit = () => {
                 />
             </div>
 
-            <div class="mt-4 flex items-center justify-end">
-                <Link
-                    :href="route('login')"
-                    class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:text-gray-400 dark:hover:text-gray-100 dark:focus:ring-offset-gray-800"
-                >
-                    Already registered?
-                </Link>
-
+            <div class="mt-6">
                 <PrimaryButton
-                    class="ms-4"
+                    class="w-full justify-center py-3 text-sm font-bold shadow-md shadow-brand-900/20"
                     :class="{ 'opacity-25': form.processing }"
                     :disabled="form.processing"
                 >
-                    Register
+                    <UserPlus class="w-4 h-4 mr-2" />
+                    Register Account
                 </PrimaryButton>
+            </div>
+
+            <div class="mt-6 pt-5 border-t border-slate-200 dark:border-slate-800 text-center">
+                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+                    Already have an account?
+                    <Link
+                        :href="route('login')"
+                        class="font-bold text-brand-700 dark:text-brand-400 hover:text-brand-800 dark:hover:text-brand-300 hover:underline ms-1 inline-flex items-center"
+                    >
+                        <span>Sign In</span>
+                        <ArrowRight class="w-3.5 h-3.5 ms-1" />
+                    </Link>
+                </p>
             </div>
         </form>
     </GuestLayout>

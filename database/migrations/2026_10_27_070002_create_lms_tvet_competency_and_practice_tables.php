@@ -108,7 +108,7 @@ return new class extends Migration
                 'sample_grading',
                 'feedback_records',
                 'microteaching',
-                'school_plans'
+                'school_plans',
             ]);
             $table->string('title');
             $table->text('description')->nullable();

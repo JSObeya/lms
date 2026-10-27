@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -13,6 +14,7 @@ use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Spatie\Permission\Models\Role;
 
 class RegisteredUserController extends Controller
 {
@@ -40,7 +42,21 @@ class RegisteredUserController extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
+            'account_status' => 'active',
             'password' => Hash::make($request->password),
+        ]);
+
+        if (class_exists(Role::class)) {
+            $studentRole = Role::where('name', 'student')->first();
+            if ($studentRole) {
+                $user->assignRole($studentRole);
+            }
+        }
+
+        AuditLog::record('user_registered', User::class, $user->id, [
+            'email' => $user->email,
+            'name' => $user->name,
+            'role' => 'student',
         ]);
 
         event(new Registered($user));

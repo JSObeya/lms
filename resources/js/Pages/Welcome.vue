@@ -19,12 +19,17 @@ import {
     Scissors,
     Layers,
     CheckCircle2,
-    BookMarked
+    BookMarked,
+    UserPlus
 } from 'lucide-vue-next';
 import ThemeToggle from '@/Components/ThemeToggle.vue';
 
 defineProps({
     canLogin: Boolean,
+    canRegister: {
+        type: Boolean,
+        default: true,
+    },
     featured_courses: Array,
     categories: Array,
 });
@@ -80,9 +85,17 @@ const getTradeIcon = (iconName) => {
                     <template v-else>
                         <Link
                             :href="route('login')"
-                            class="hidden sm:inline-block px-4 py-2 text-sm font-semibold text-slate-300 hover:text-white transition"
+                            class="hidden sm:inline-block px-3 py-2 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white transition"
                         >
                             Sign In
+                        </Link>
+                        <Link
+                            v-if="canRegister !== false"
+                            :href="route('register')"
+                            class="px-3.5 sm:px-4 py-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-100 hover:text-white border border-slate-700 font-bold text-xs sm:text-sm transition flex items-center space-x-1.5 shadow-sm"
+                        >
+                            <UserPlus class="w-4 h-4 text-rose-400" />
+                            <span>Register</span>
                         </Link>
                         <Link
                             :href="route('login')"
@@ -121,8 +134,17 @@ const getTradeIcon = (iconName) => {
 
                 <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
                     <Link
+                        v-if="canRegister !== false"
+                        :href="route('register')"
+                        class="w-full sm:w-auto px-7 py-4 rounded-2xl bg-gradient-to-r from-brand-700 via-rose-700 to-brand-800 hover:from-brand-600 hover:to-rose-600 text-white font-black text-base shadow-xl shadow-brand-950/40 border border-brand-500/40 transition flex items-center justify-center space-x-2"
+                    >
+                        <UserPlus class="w-5 h-5 text-rose-300" />
+                        <span>Register as Trainee</span>
+                    </Link>
+
+                    <Link
                         :href="route('login')"
-                        class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-base shadow-xl shadow-teal-500/20 transition flex items-center justify-center space-x-2"
+                        class="w-full sm:w-auto px-7 py-4 rounded-2xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-base shadow-xl shadow-teal-500/20 transition flex items-center justify-center space-x-2"
                     >
                         <span>Access Teacher Workspace</span>
                         <ArrowRight class="w-5 h-5" />
@@ -130,7 +152,7 @@ const getTradeIcon = (iconName) => {
 
                     <a
                         href="#trades"
-                        class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-slate-900/80 hover:bg-slate-800 text-slate-200 border border-slate-700/80 font-bold text-base transition flex items-center justify-center space-x-2"
+                        class="w-full sm:w-auto px-7 py-4 rounded-2xl bg-slate-900/80 hover:bg-slate-800 text-slate-200 border border-slate-700/80 font-bold text-base transition flex items-center justify-center space-x-2"
                     >
                         <span>Explore 8 TVET Trades</span>
                     </a>
@@ -236,10 +258,13 @@ const getTradeIcon = (iconName) => {
                     <ApplicationLogo size="sm" />
                 </div>
 
-                <div class="flex items-center space-x-6 text-slate-400">
+                <div class="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-slate-400">
                     <Link :href="route('trainee.guide')" class="hover:text-white transition flex items-center space-x-1.5">
                         <BookMarked class="w-4 h-4 text-brand-400" />
                         <span>Trainee User Manual</span>
+                    </Link>
+                    <Link v-if="canRegister !== false" :href="route('register')" class="hover:text-white transition">
+                        Register Account
                     </Link>
                     <Link :href="route('login')" class="hover:text-white transition">
                         Portal Login
