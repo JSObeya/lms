@@ -393,4 +393,83 @@ class TeacherQuizTest extends TestCase
         $response = $this->actingAs($this->teacher)->get(route('admin.quizzes.questions.index', $this->quiz->id));
         $response->assertStatus(403);
     }
+
+    public function test_evaluator_can_create_new_quiz_exam(): void
+    {
+        $response = $this->actingAs($this->admin)->post(route('admin.quizzes.store'), [
+            'title' => 'Automobile Diagnostic Specialist Examination',
+            'category' => 'Automobile Repairs',
+            'time_limit_minutes' => 90,
+            'passing_percentage' => 70,
+            'description' => 'Comprehensive examination on automotive ECU and brake safety diagnostics.',
+            'instructions' => 'Read all 50 questions carefully before submitting.',
+            'is_active' => true,
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('quizzes', [
+            'title' => 'Automobile Diagnostic Specialist Examination',
+            'category' => 'Automobile Repairs',
+            'time_limit_minutes' => 90,
+            'passing_percentage' => 70,
+            'is_active' => true,
+        ]);
+
+        $createdQuiz = Quiz::where('title', 'Automobile Diagnostic Specialist Examination')->first();
+        $response->assertRedirect(route('admin.quizzes.questions.index', $createdQuiz->id));
+    }
+
+    public function test_evaluator_can_update_quiz_exam(): void
+    {
+        $response = $this->actingAs($this->admin)->put(route('admin.quizzes.update', $this->quiz->id), [
+            'title' => 'Updated TVET Competency Assessment 2026',
+            'category' => 'Digital Tools & Inclusive Pedagogy',
+            'time_limit_minutes' => 75,
+            'passing_percentage' => 65,
+            'description' => 'Updated assessment syllabus.',
+            'instructions' => 'Follow all instructions strictly.',
+            'is_active' => true,
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('quizzes', [
+            'id' => $this->quiz->id,
+            'title' => 'Updated TVET Competency Assessment 2026',
+            'time_limit_minutes' => 75,
+            'passing_percentage' => 65,
+        ]);
+    }
+
+    public function test_evaluator_can_delete_quiz_exam(): void
+    {
+        $quizToDelete = Quiz::create([
+            'title' => 'Temporary Practice Exam',
+            'slug' => 'temp-practice-exam',
+            'category' => 'General Technical Education',
+            'time_limit_minutes' => 30,
+            'passing_percentage' => 50,
+            'total_questions' => 0,
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($this->admin)->delete(route('admin.quizzes.destroy', $quizToDelete->id));
+
+        $response->assertRedirect(route('quizzes.index'));
+        $this->assertSoftDeleted('quizzes', [
+            'id' => $quizToDelete->id,
+        ]);
+    }
+
+    public function test_teacher_cannot_create_or_modify_exams(): void
+    {
+        $storeResponse = $this->actingAs($this->teacher)->post(route('admin.quizzes.store'), [
+            'title' => 'Hacked Exam',
+            'category' => 'General',
+            'passing_percentage' => 50,
+        ]);
+        $storeResponse->assertStatus(403);
+
+        $deleteResponse = $this->actingAs($this->teacher)->delete(route('admin.quizzes.destroy', $this->quiz->id));
+        $deleteResponse->assertStatus(403);
+    }
 }

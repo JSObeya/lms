@@ -191,6 +191,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::match(['get', 'post'], '/admin/quiz-analytics/batch-print', [TeacherQuizController::class, 'batchIndividualPrint'])->name('admin.quizzes.batch-print');
     Route::get('/admin/quiz-analytics/export-csv', [TeacherQuizController::class, 'exportCsv'])->name('admin.quizzes.export-csv');
 
+    // MCQ Quizzes / Exams Creation & Management (Admins & Facilitators)
+    Route::post('/admin/quizzes', [TeacherQuizController::class, 'storeQuiz'])->name('admin.quizzes.store');
+    Route::put('/admin/quizzes/{quiz}', [TeacherQuizController::class, 'updateQuiz'])->name('admin.quizzes.update');
+    Route::delete('/admin/quizzes/{quiz}', [TeacherQuizController::class, 'destroyQuiz'])->name('admin.quizzes.destroy');
+
     // MCQ Questions Setting & Bulk CSV Upload
     Route::get('/admin/quizzes/questions/sample-csv', [TeacherQuizController::class, 'downloadSampleCsv'])->name('admin.quizzes.questions.sample-csv');
     Route::get('/admin/quizzes/questions/{quiz?}', [TeacherQuizController::class, 'manageQuestions'])->name('admin.quizzes.questions.index');

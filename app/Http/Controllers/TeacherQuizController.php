@@ -11,6 +11,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -25,8 +26,11 @@ class TeacherQuizController extends Controller
         $user = $request->user();
         $isEvaluator = $user->hasRole(['super_admin', 'lms_admin', 'facilitator']);
 
-        $quizzes = Quiz::active()
+        $quizzesQuery = $isEvaluator ? Quiz::query() : Quiz::active();
+
+        $quizzes = $quizzesQuery
             ->withCount('questions')
+            ->orderBy('id', 'asc')
             ->get()
             ->map(function ($quiz) use ($user) {
                 $userAttempts = QuizAttempt::where('quiz_id', $quiz->id)
@@ -44,6 +48,7 @@ class TeacherQuizController extends Controller
                     'time_limit_minutes' => $quiz->time_limit_minutes,
                     'passing_percentage' => $quiz->passing_percentage,
                     'total_questions' => $quiz->questions_count,
+                    'is_active' => (bool) $quiz->is_active,
                     'user_attempts_count' => $userAttempts->count(),
                     'latest_attempt' => $userAttempts->first(),
                     'best_score' => $userAttempts->max('percentage') ?? null,
@@ -70,7 +75,129 @@ class TeacherQuizController extends Controller
             'quizzes' => $quizzes,
             'isEvaluator' => $isEvaluator,
             'evaluatorStats' => $evaluatorStats,
+            'availableCategories' => $this->getAvailableCategories(),
         ]);
+    }
+
+    /**
+     * Create a new MCQ Quiz / Examination.
+     */
+    public function storeQuiz(Request $request): RedirectResponse
+    {
+        $this->authorizeEvaluator();
+
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'category' => ['required', 'string', 'max:100'],
+            'time_limit_minutes' => ['nullable', 'integer', 'min:5', 'max:300'],
+            'passing_percentage' => ['required', 'integer', 'min:1', 'max:100'],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'instructions' => ['nullable', 'string', 'max:2000'],
+            'is_active' => ['nullable', 'boolean'],
+        ]);
+
+        $baseSlug = Str::slug($validated['title']);
+        $slug = $baseSlug ?: 'quiz-'.time();
+        $counter = 1;
+        while (Quiz::where('slug', $slug)->exists()) {
+            $slug = "{$baseSlug}-{$counter}";
+            $counter++;
+        }
+
+        $quiz = Quiz::create([
+            'title' => trim($validated['title']),
+            'slug' => $slug,
+            'category' => trim($validated['category']),
+            'time_limit_minutes' => $validated['time_limit_minutes'] ?? 60,
+            'passing_percentage' => $validated['passing_percentage'] ?? 60,
+            'total_questions' => 0,
+            'description' => ! empty($validated['description']) ? trim($validated['description']) : null,
+            'instructions' => ! empty($validated['instructions']) ? trim($validated['instructions']) : null,
+            'is_active' => $request->boolean('is_active', true),
+            'created_by' => auth()->id(),
+        ]);
+
+        AuditLog::create([
+            'user_id' => auth()->id(),
+            'action' => 'quiz_created',
+            'entity_type' => Quiz::class,
+            'entity_id' => $quiz->id,
+            'description' => "Created new assessment exam: {$quiz->title} in category {$quiz->category}.",
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
+        return redirect()->route('admin.quizzes.questions.index', $quiz->id)
+            ->with('success', "Exam '{$quiz->title}' created successfully! You can now add questions or upload CSV.");
+    }
+
+    /**
+     * Update an existing Quiz / Examination.
+     */
+    public function updateQuiz(Request $request, Quiz $quiz): RedirectResponse
+    {
+        $this->authorizeEvaluator();
+
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'category' => ['required', 'string', 'max:100'],
+            'time_limit_minutes' => ['nullable', 'integer', 'min:5', 'max:300'],
+            'passing_percentage' => ['required', 'integer', 'min:1', 'max:100'],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'instructions' => ['nullable', 'string', 'max:2000'],
+            'is_active' => ['nullable', 'boolean'],
+        ]);
+
+        $quiz->update([
+            'title' => trim($validated['title']),
+            'category' => trim($validated['category']),
+            'time_limit_minutes' => $validated['time_limit_minutes'] ?? $quiz->time_limit_minutes,
+            'passing_percentage' => $validated['passing_percentage'] ?? $quiz->passing_percentage,
+            'description' => ! empty($validated['description']) ? trim($validated['description']) : null,
+            'instructions' => ! empty($validated['instructions']) ? trim($validated['instructions']) : null,
+            'is_active' => $request->boolean('is_active', $quiz->is_active),
+        ]);
+
+        AuditLog::create([
+            'user_id' => auth()->id(),
+            'action' => 'quiz_updated',
+            'entity_type' => Quiz::class,
+            'entity_id' => $quiz->id,
+            'description' => "Updated assessment exam settings for {$quiz->title}.",
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
+        return back()->with('success', "Exam '{$quiz->title}' settings updated successfully.");
+    }
+
+    /**
+     * Delete an existing Quiz / Examination.
+     */
+    public function destroyQuiz(Request $request, Quiz $quiz): RedirectResponse
+    {
+        $this->authorizeEvaluator();
+
+        $title = $quiz->title;
+        $quizId = $quiz->id;
+
+        // Cascade delete questions and attempts
+        $quiz->questions()->delete();
+        $quiz->attempts()->delete();
+        $quiz->delete();
+
+        AuditLog::create([
+            'user_id' => auth()->id(),
+            'action' => 'quiz_deleted',
+            'entity_type' => Quiz::class,
+            'entity_id' => $quizId,
+            'description' => "Deleted assessment exam {$title} and its associated questions/attempts.",
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
+        return redirect()->route('quizzes.index')
+            ->with('success', "Exam '{$title}' was successfully deleted.");
     }
 
     /**
@@ -604,48 +731,7 @@ class TeacherQuizController extends Controller
 
         $questions = $query->paginate(25)->withQueryString();
 
-        // Get all unique lecture categories currently in quiz_questions
-        $quizCategories = QuizQuestion::where('quiz_id', $quiz->id)
-            ->distinct()
-            ->orderBy('category')
-            ->pluck('category')
-            ->toArray();
-
-        // Get all TradeCategory names from system
-        $tradeCategories = TradeCategory::where('is_active', true)
-            ->orderBy('order_index')
-            ->pluck('name')
-            ->toArray();
-
-        // Standard lecture categories
-        $standardCategories = [
-            'CBT & Occupational Standards',
-            'Instructional Planning & Delivery',
-            'Workshop & Safety Management',
-            'Assessment & Rubrics',
-            'Digital Tools & Inclusive Pedagogy',
-            'Solar PV Installation and Maintenance',
-            'Electrical Works',
-            'Welding and Fabrication',
-            'Automobile Repairs',
-            'Carpentry and Joinery',
-            'Agriculture',
-            'Catering Services',
-            'Garment Making',
-            'ICT and Digital Literacy',
-            'Cybersecurity',
-            'Generative AI',
-            'Web Development',
-            'General Technical Education',
-            'Instructor Professional Development',
-        ];
-
-        $allCategories = array_values(array_unique(array_filter(array_merge(
-            $quizCategories,
-            $tradeCategories,
-            $standardCategories
-        ))));
-        sort($allCategories);
+        $allCategories = $this->getAvailableCategories($quiz);
 
         // Counts per category for this quiz
         $categoryCounts = QuizQuestion::where('quiz_id', $quiz->id)
@@ -654,14 +740,30 @@ class TeacherQuizController extends Controller
             ->pluck('count', 'category')
             ->toArray();
 
+        $allQuizzes = Quiz::orderBy('id', 'asc')
+            ->withCount('questions')
+            ->get()
+            ->map(fn ($q) => [
+                'id' => $q->id,
+                'title' => $q->title,
+                'slug' => $q->slug,
+                'category' => $q->category,
+                'total_questions' => $q->questions_count,
+                'is_active' => (bool) $q->is_active,
+            ]);
+
         return Inertia::render('Teacher/Quizzes/ManageQuestions', [
             'quiz' => [
                 'id' => $quiz->id,
                 'title' => $quiz->title,
                 'slug' => $quiz->slug,
+                'category' => $quiz->category,
                 'total_questions' => $quiz->questions()->count(),
                 'time_limit_minutes' => $quiz->time_limit_minutes,
                 'passing_percentage' => $quiz->passing_percentage,
+                'description' => $quiz->description,
+                'instructions' => $quiz->instructions,
+                'is_active' => (bool) $quiz->is_active,
             ],
             'questions' => $questions,
             'filters' => [
@@ -670,6 +772,7 @@ class TeacherQuizController extends Controller
             ],
             'availableCategories' => $allCategories,
             'categoryCounts' => $categoryCounts,
+            'allQuizzes' => $allQuizzes,
         ]);
     }
 
@@ -1077,5 +1180,51 @@ class TeacherQuizController extends Controller
         if (! auth()->user()->hasRole(['super_admin', 'lms_admin', 'facilitator'])) {
             abort(403, 'Unauthorized access to assessment evaluation and analytics.');
         }
+    }
+
+    /**
+     * Get consolidated list of standard pedagogy, trade, and custom quiz categories.
+     */
+    protected function getAvailableCategories(?Quiz $quiz = null): array
+    {
+        $quizCategories = $quiz
+            ? QuizQuestion::where('quiz_id', $quiz->id)->distinct()->pluck('category')->toArray()
+            : QuizQuestion::distinct()->pluck('category')->toArray();
+
+        $tradeCategories = TradeCategory::where('is_active', true)
+            ->orderBy('order_index')
+            ->pluck('name')
+            ->toArray();
+
+        $standardCategories = [
+            'CBT & Occupational Standards',
+            'Instructional Planning & Delivery',
+            'Workshop & Safety Management',
+            'Assessment & Rubrics',
+            'Digital Tools & Inclusive Pedagogy',
+            'Solar PV Installation and Maintenance',
+            'Electrical Works',
+            'Welding and Fabrication',
+            'Automobile Repairs',
+            'Carpentry and Joinery',
+            'Agriculture',
+            'Catering Services',
+            'Garment Making',
+            'ICT and Digital Literacy',
+            'Cybersecurity',
+            'Generative AI',
+            'Web Development',
+            'General Technical Education',
+            'Instructor Professional Development',
+        ];
+
+        $allCategories = array_values(array_unique(array_filter(array_merge(
+            $quizCategories,
+            $tradeCategories,
+            $standardCategories
+        ))));
+        sort($allCategories);
+
+        return $allCategories;
     }
 }

@@ -50,7 +50,15 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
+    allQuizzes: {
+        type: Array,
+        default: () => [],
+    },
 });
+
+const switchQuiz = (newId) => {
+    router.get(route('admin.quizzes.questions.index', newId));
+};
 
 const searchQuery = ref(props.filters.search || '');
 const selectedCategory = ref(props.filters.category || 'all');
@@ -232,6 +240,28 @@ const submitBulkCsv = () => {
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2">
+                    <!-- Exam Switcher Dropdown -->
+                    <div v-if="allQuizzes && allQuizzes.length > 1" class="flex items-center space-x-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <span class="text-[11px] font-semibold text-slate-500 pl-1.5">Exam:</span>
+                        <select
+                            :value="quiz.id"
+                            @change="switchQuiz($event.target.value)"
+                            class="text-xs font-bold rounded-lg border-0 bg-white dark:bg-slate-900 text-slate-900 dark:text-white py-1 pl-2 pr-7 shadow-xs"
+                        >
+                            <option v-for="q in allQuizzes" :key="q.id" :value="q.id">
+                                {{ q.title }} ({{ q.total_questions }} MCQs)
+                            </option>
+                        </select>
+                    </div>
+
+                    <Link
+                        :href="route('quizzes.index')"
+                        class="inline-flex items-center space-x-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl text-xs font-semibold border border-slate-300 dark:border-slate-700 transition"
+                    >
+                        <Plus class="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+                        <span>All Exams</span>
+                    </Link>
+
                     <a
                         :href="route('admin.quizzes.questions.sample-csv')"
                         class="inline-flex items-center space-x-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl text-xs font-semibold border border-slate-300 dark:border-slate-700 transition"
