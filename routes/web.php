@@ -179,6 +179,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/teacher-documents/{teacherDocument}', [TeacherDocumentController::class, 'destroy'])->name('teacher-documents.destroy');
 
     // Teacher MCQ Assessment & Evaluation Engine
+    Route::get('/quizzes/guide/download-word', function () {
+        $filePath = public_path('downloads/TVET_MCQ_Examination_Module_Comprehensive_User_Guide.docx');
+
+        if (! file_exists($filePath)) {
+            abort(404, 'MCQ Examination Module guide document not found.');
+        }
+
+        return response()->download(
+            $filePath,
+            'TVET_MCQ_Examination_Module_Comprehensive_User_Guide.docx',
+            [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            ]
+        );
+    })->name('quizzes.guide.download-word');
     Route::get('/quizzes/guide', [TeacherQuizController::class, 'guide'])->name('quizzes.guide');
     Route::get('/quizzes', [TeacherQuizController::class, 'index'])->name('quizzes.index');
     Route::get('/quizzes/{quiz}', [TeacherQuizController::class, 'show'])->name('quizzes.show');

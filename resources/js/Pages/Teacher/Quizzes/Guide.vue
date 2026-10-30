@@ -55,6 +55,15 @@ const activeTab = ref('candidates'); // 'candidates', 'evaluators', 'admins'
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2">
+                    <a
+                        :href="route('quizzes.guide.download-word')"
+                        class="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-sm"
+                        title="Download official Microsoft Word (.docx) document"
+                    >
+                        <Download class="w-4 h-4" />
+                        <span>Download Word (.docx)</span>
+                    </a>
+
                     <button
                         type="button"
                         onclick="window.print()"
@@ -85,6 +94,32 @@ const activeTab = ref('candidates'); // 'candidates', 'evaluators', 'admins'
         </template>
 
         <div class="py-8 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto space-y-8">
+            <!-- Official Word Document Download Banner -->
+            <div class="p-5 rounded-2xl bg-gradient-to-r from-blue-900/30 via-slate-900/50 to-indigo-900/30 border border-blue-500/30 backdrop-blur-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-center space-x-4">
+                    <div class="p-3 bg-blue-500/20 text-blue-400 rounded-xl border border-blue-500/30">
+                        <FileText class="w-6 h-6" />
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/40">Microsoft Word Document (.docx)</span>
+                            <span class="text-xs text-slate-400">44 KB • Version 1.0</span>
+                        </div>
+                        <h3 class="text-base font-bold text-white mt-1">TVET MCQ Examination Module: Comprehensive User &amp; Admin Guide</h3>
+                        <p class="text-xs text-slate-300">Complete printed manual including Candidate Workflows, Evaluator Analytics, and 9-Column CSV Specifications.</p>
+                    </div>
+                </div>
+                <div class="shrink-0">
+                    <a
+                        :href="route('quizzes.guide.download-word')"
+                        class="inline-flex items-center space-x-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition cursor-pointer"
+                    >
+                        <Download class="w-4 h-4" />
+                        <span>Download Word Guide (.docx)</span>
+                    </a>
+                </div>
+            </div>
+
             <!-- Role Selector Navigation Tabs -->
             <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-2 flex flex-wrap items-center gap-2">
                 <button

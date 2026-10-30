@@ -73,6 +73,15 @@ class TeacherQuizTest extends TestCase
         );
     }
 
+    public function test_user_can_download_quiz_guide_word_document(): void
+    {
+        $response = $this->actingAs($this->teacher)->get(route('quizzes.guide.download-word'));
+
+        $response->assertStatus(200);
+        $response->assertHeader('content-type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        $this->assertStringContainsString('TVET_MCQ_Examination_Module_Comprehensive_User_Guide.docx', $response->headers->get('content-disposition'));
+    }
+
     public function test_teacher_can_view_assessment_taking_screen(): void
     {
         $response = $this->actingAs($this->teacher)->get(route('quizzes.show', $this->quiz->id));

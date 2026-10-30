@@ -1,0 +1,12 @@
+Update Hostinger (Run in your Hostinger Terminal):
+
+ssh -p 65002 u842010817@46.202.172.40
+
+cd /home/u842010817/domains/gregicthub.com/public_html/lms
+
+
+bash
+git pull origin main
+php artisan optimize:clear
+php artisan route:cache
+php artisan view:cache

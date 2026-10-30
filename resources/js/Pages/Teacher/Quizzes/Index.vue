@@ -198,6 +198,15 @@ const submitDelete = () => {
                         <BarChart3 class="w-4 h-4" />
                         <span>Results Analytics &amp; Printing</span>
                     </Link>
+
+                    <Link
+                        :href="route('quizzes.guide')"
+                        class="inline-flex items-center space-x-2 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold border border-slate-700 shadow-sm transition"
+                        title="View comprehensive operational guide and download Word (.docx) document"
+                    >
+                        <BookOpen class="w-4 h-4 text-blue-400" />
+                        <span>Exam Guide (.docx)</span>
+                    </Link>
                 </div>
             </div>
         </template>
