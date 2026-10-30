@@ -80,6 +80,19 @@ class TeacherQuizController extends Controller
     }
 
     /**
+     * Comprehensive Examination & Assessment Module User Guide.
+     */
+    public function guide(Request $request): Response
+    {
+        $user = $request->user();
+        $isEvaluator = $user->hasRole(['super_admin', 'lms_admin', 'facilitator']);
+
+        return Inertia::render('Teacher/Quizzes/Guide', [
+            'isEvaluator' => $isEvaluator,
+        ]);
+    }
+
+    /**
      * Create a new MCQ Quiz / Examination.
      */
     public function storeQuiz(Request $request): RedirectResponse

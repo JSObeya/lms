@@ -27,7 +27,11 @@ import {
     FileDown,
     CheckSquare,
     BarChart3,
-    HelpCircle
+    HelpCircle,
+    FileText,
+    Printer,
+    GraduationCap,
+    Shield
 } from 'lucide-vue-next';
 import ThemeToggle from '@/Components/ThemeToggle.vue';
 import PageActivityIndicator from '@/Components/PageActivityIndicator.vue';
@@ -91,7 +95,7 @@ const showFlash = ref(true);
                                 <span>Courses</span>
                             </Link>
 
-                            <!-- TVET Pedagogy Studio Menu Dropdown -->
+                            <!-- TVET Pedagogy Studio Consolidated Dropdown -->
                             <div v-if="isTeacher || isFacilitator || isAdmin" class="relative">
                                 <Dropdown align="left" width="64">
                                     <template #trigger>
@@ -99,27 +103,33 @@ const showFlash = ref(true);
                                             type="button"
                                             :class="[
                                                 'px-3 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-1.5',
-                                                route().current('pedagogy.*')
+                                                route().current('pedagogy.*') || route().current('day8.*') || route().current('rubrics.*') || route().current('portfolio.*')
                                                     ? 'bg-rose-900/40 text-rose-300 border border-rose-500/40 shadow-sm shadow-rose-900/20'
                                                     : 'text-rose-200/90 hover:text-white hover:bg-slate-800'
                                             ]"
                                         >
                                             <Sparkles class="w-4 h-4 text-rose-400" />
-                                            <span>TVET Pedagogy Studio</span>
-                                            <span class="bg-rose-500/20 text-rose-300 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">Days 9-10</span>
+                                            <span>Pedagogy Studio</span>
                                             <ChevronDown class="w-3.5 h-3.5 ml-0.5 opacity-70" />
                                         </button>
                                     </template>
 
                                     <template #content>
                                         <div class="px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 dark:border-slate-800">
-                                            IDEAS-TVET Instructional Design
+                                            TVET Pedagogy &amp; Lesson Design
                                         </div>
                                         <DropdownLink :href="route('pedagogy.studio')" class="flex items-center space-x-2">
                                             <Layers class="w-4 h-4 text-rose-500" />
                                             <div>
                                                 <div class="font-medium">TVET Pedagogy Studio</div>
-                                                <div class="text-[11px] text-slate-400">Progressive Days 8–12 Overview Hub</div>
+                                                <div class="text-[11px] text-slate-400">Progressive Days 8–12 Hub</div>
+                                            </div>
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('day8.wizard')" class="flex items-center space-x-2">
+                                            <Wand2 class="w-4 h-4 text-amber-500" />
+                                            <div>
+                                                <div class="font-medium">Day 8 Practice Wizard</div>
+                                                <div class="text-[11px] text-slate-400">AI-Assisted Lesson Preparation</div>
                                             </div>
                                         </DropdownLink>
                                         <DropdownLink :href="route('pedagogy.lessons.builder')" class="flex items-center space-x-2">
@@ -139,7 +149,7 @@ const showFlash = ref(true);
                                         <DropdownLink :href="route('pedagogy.demo-project-planner')" class="flex items-center space-x-2">
                                             <Wrench class="w-4 h-4 text-blue-500" />
                                             <div>
-                                                <div class="font-medium">Demonstration and Project Planner</div>
+                                                <div class="font-medium">Demonstration &amp; Project Planner</div>
                                                 <div class="text-[11px] text-slate-400">PBL &amp; Fault Diagnosis Scenarios</div>
                                             </div>
                                         </DropdownLink>
@@ -150,7 +160,14 @@ const showFlash = ref(true);
                                                 <div class="text-[11px] text-slate-400">Equipment Rotation &amp; Group Matrix</div>
                                             </div>
                                         </DropdownLink>
-                                        <DropdownLink :href="route('portfolio.index')" class="flex items-center space-x-2 border-t border-slate-100 dark:border-slate-800">
+                                        <DropdownLink :href="route('rubrics.index')" class="flex items-center space-x-2 border-t border-slate-100 dark:border-slate-800">
+                                            <Award class="w-4 h-4 text-teal-500" />
+                                            <div>
+                                                <div class="font-medium">Assessment Rubrics Designer</div>
+                                                <div class="text-[11px] text-slate-400">Standardized TVET Competency Rubrics</div>
+                                            </div>
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('portfolio.index')" class="flex items-center space-x-2">
                                             <Briefcase class="w-4 h-4 text-purple-500" />
                                             <div>
                                                 <div class="font-medium">My Teaching Portfolio</div>
@@ -161,153 +178,148 @@ const showFlash = ref(true);
                                 </Dropdown>
                             </div>
 
-                            <!-- Day 8 Practice Wizard -->
-                            <Link
-                                v-if="isTeacher || isFacilitator || isAdmin"
-                                :href="route('day8.wizard')"
-                                :class="[
-                                    'px-3 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-1.5',
-                                    route().current('day8.*')
-                                        ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm shadow-amber-500/10'
-                                        : 'text-amber-300/80 hover:text-amber-200 hover:bg-slate-800'
-                                ]"
-                            >
-                                <Wand2 class="w-4 h-4 text-amber-400" />
-                                <span>Day 8 Wizard</span>
-                            </Link>
+                            <!-- Exams & Assessments Consolidated Dropdown -->
+                            <div class="relative">
+                                <Dropdown align="left" width="64">
+                                    <template #trigger>
+                                        <button
+                                            type="button"
+                                            :class="[
+                                                'px-3 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-1.5',
+                                                route().current('quizzes.*') || route().current('admin.quizzes.*')
+                                                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-xs'
+                                                    : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                                            ]"
+                                        >
+                                            <CheckSquare class="w-4 h-4 text-amber-400" />
+                                            <span>Exams &amp; MCQs</span>
+                                            <ChevronDown class="w-3.5 h-3.5 ml-0.5 opacity-70" />
+                                        </button>
+                                    </template>
 
-                            <!-- Facilitator Reviews Portal -->
-                            <Link
-                                v-if="isFacilitator || isAdmin"
-                                :href="route('facilitator.pedagogy-reviews.index')"
-                                :class="[
-                                    'px-3 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-1.5',
-                                    route().current('facilitator.pedagogy-reviews.*')
-                                        ? 'bg-purple-600/20 text-purple-300 border border-purple-500/40'
-                                        : 'text-purple-300/80 hover:text-white hover:bg-slate-800'
-                                ]"
-                            >
-                                <Award class="w-4 h-4 text-purple-400" />
-                                <span>Facilitator Reviews</span>
-                            </Link>
+                                    <template #content>
+                                        <div class="px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 dark:border-slate-800">
+                                            Competency Assessment Engine
+                                        </div>
+                                        <DropdownLink :href="route('quizzes.index')" class="flex items-center space-x-2">
+                                            <CheckSquare class="w-4 h-4 text-amber-500" />
+                                            <div>
+                                                <div class="font-medium">Available Competency Exams</div>
+                                                <div class="text-[11px] text-slate-400">Take exams &amp; view test history</div>
+                                            </div>
+                                        </DropdownLink>
+                                        <DropdownLink
+                                            v-if="isAdmin || isFacilitator"
+                                            :href="route('admin.quizzes.questions.index')"
+                                            class="flex items-center space-x-2"
+                                        >
+                                            <HelpCircle class="w-4 h-4 text-teal-500" />
+                                            <div>
+                                                <div class="font-medium">Question Bank &amp; Bulk CSV</div>
+                                                <div class="text-[11px] text-slate-400">Set questions &amp; upload CSVs</div>
+                                            </div>
+                                        </DropdownLink>
+                                        <DropdownLink
+                                            v-if="isAdmin || isFacilitator"
+                                            :href="route('admin.quizzes.analytics')"
+                                            class="flex items-center space-x-2"
+                                        >
+                                            <BarChart3 class="w-4 h-4 text-purple-500" />
+                                            <div>
+                                                <div class="font-medium">Results Analytics &amp; Reports</div>
+                                                <div class="text-[11px] text-slate-400">Filter, evaluate &amp; export teacher scores</div>
+                                            </div>
+                                        </DropdownLink>
+                                        <DropdownLink
+                                            v-if="isAdmin || isFacilitator"
+                                            :href="route('admin.quizzes.collective-print')"
+                                            class="flex items-center space-x-2"
+                                        >
+                                            <Printer class="w-4 h-4 text-blue-500" />
+                                            <div>
+                                                <div class="font-medium">Print Collective Scorecards</div>
+                                                <div class="text-[11px] text-slate-400">Master broadsheets &amp; evaluation slips</div>
+                                            </div>
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('quizzes.guide')" class="flex items-center space-x-2 border-t border-slate-100 dark:border-slate-800">
+                                            <BookMarked class="w-4 h-4 text-amber-500" />
+                                            <div>
+                                                <div class="font-medium text-amber-400">Exam Module User Guide</div>
+                                                <div class="text-[11px] text-slate-400">Instructions for candidates &amp; admins</div>
+                                            </div>
+                                        </DropdownLink>
+                                    </template>
+                                </Dropdown>
+                            </div>
 
-                            <!-- Rubric Designer -->
-                            <Link
-                                v-if="isTeacher || isAdmin"
-                                :href="route('rubrics.index')"
-                                :class="[
-                                    'px-3 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-1.5',
-                                    route().current('rubrics.*')
-                                        ? 'bg-teal-600/20 text-teal-400 border border-teal-500/30'
-                                        : 'text-slate-300 hover:text-white hover:bg-slate-800'
-                                ]"
-                            >
-                                <Award class="w-4 h-4" />
-                                <span>Rubrics</span>
-                            </Link>
+                            <!-- Admin & Facilitator Hub Dropdown -->
+                            <div v-if="isAdmin || isFacilitator" class="relative">
+                                <Dropdown align="left" width="64">
+                                    <template #trigger>
+                                        <button
+                                            type="button"
+                                            :class="[
+                                                'px-3 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-1.5',
+                                                route().current('facilitator.*') || route().current('admin.users.*') || route().current('admin.audit-logs.*') || route().current('teacher-documents.*')
+                                                    ? 'bg-purple-600/20 text-purple-300 border border-purple-500/40'
+                                                    : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                                            ]"
+                                        >
+                                            <Shield class="w-4 h-4 text-purple-400" />
+                                            <span>Admin Hub</span>
+                                            <ChevronDown class="w-3.5 h-3.5 ml-0.5 opacity-70" />
+                                        </button>
+                                    </template>
 
-                            <!-- My Teaching Portfolio (Direct link) -->
-                            <Link
-                                v-if="isTeacher"
-                                :href="route('portfolio.index')"
-                                :class="[
-                                    'px-3 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-1.5',
-                                    route().current('portfolio.*')
-                                        ? 'bg-teal-600/20 text-teal-400 border border-teal-500/30'
-                                        : 'text-slate-300 hover:text-white hover:bg-slate-800'
-                                ]"
-                            >
-                                <Briefcase class="w-4 h-4" />
-                                <span>My Teaching Portfolio</span>
-                            </Link>
+                                    <template #content>
+                                        <div class="px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 dark:border-slate-800">
+                                            Administration &amp; Oversight
+                                        </div>
+                                        <DropdownLink :href="route('facilitator.pedagogy-reviews.index')" class="flex items-center space-x-2">
+                                            <Award class="w-4 h-4 text-purple-500" />
+                                            <div>
+                                                <div class="font-medium">Facilitator Reviews Portal</div>
+                                                <div class="text-[11px] text-slate-400">Assess submitted TVET lesson plans</div>
+                                            </div>
+                                        </DropdownLink>
+                                        <DropdownLink :href="route('teacher-documents.index')" class="flex items-center space-x-2">
+                                            <FileDown class="w-4 h-4 text-teal-500" />
+                                            <div>
+                                                <div class="font-medium">Documents Repository</div>
+                                                <div class="text-[11px] text-slate-400">PDFs, templates &amp; teaching guides</div>
+                                            </div>
+                                        </DropdownLink>
+                                        <DropdownLink v-if="isAdmin" :href="route('admin.users.index')" class="flex items-center space-x-2 border-t border-slate-100 dark:border-slate-800">
+                                            <Users class="w-4 h-4 text-blue-500" />
+                                            <div>
+                                                <div class="font-medium">User Management (200 Teachers)</div>
+                                                <div class="text-[11px] text-slate-400">Accounts, roles &amp; bulk onboarding</div>
+                                            </div>
+                                        </DropdownLink>
+                                        <DropdownLink v-if="isAdmin" :href="route('admin.audit-logs.index')" class="flex items-center space-x-2">
+                                            <ShieldCheck class="w-4 h-4 text-emerald-500" />
+                                            <div>
+                                                <div class="font-medium">System Audit Trail</div>
+                                                <div class="text-[11px] text-slate-400">Security event logs &amp; activity history</div>
+                                            </div>
+                                        </DropdownLink>
+                                    </template>
+                                </Dropdown>
+                            </div>
 
-                            <!-- Teacher Document Repository (PDF Downloads) -->
+                            <!-- Direct Document link for regular Teachers -->
                             <Link
-                                v-if="isTeacher || isFacilitator || isAdmin"
+                                v-else-if="isTeacher"
                                 :href="route('teacher-documents.index')"
                                 :class="[
                                     'px-3 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-1.5',
                                     route().current('teacher-documents.*')
-                                        ? 'bg-teal-600/20 text-teal-400 border border-teal-500/30 shadow-xs'
+                                        ? 'bg-teal-600/20 text-teal-400 border border-teal-500/30'
                                         : 'text-slate-300 hover:text-white hover:bg-slate-800'
                                 ]"
                             >
                                 <FileDown class="w-4 h-4 text-teal-400" />
                                 <span>Documents</span>
-                            </Link>
-
-                            <!-- MCQ Competency Assessment Quiz -->
-                            <Link
-                                :href="route('quizzes.index')"
-                                :class="[
-                                    'px-3 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-1.5',
-                                    route().current('quizzes.*')
-                                        ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-xs'
-                                        : 'text-slate-300 hover:text-white hover:bg-slate-800'
-                                ]"
-                            >
-                                <CheckSquare class="w-4 h-4 text-amber-400" />
-                                <span>MCQ Quiz</span>
-                            </Link>
-
-                            <!-- Quiz Analytics & Evaluation Reports (Admins & Facilitators) -->
-                            <Link
-                                v-if="isAdmin || isFacilitator"
-                                :href="route('admin.quizzes.analytics')"
-                                :class="[
-                                    'px-3 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-1.5',
-                                    route().current('admin.quizzes.analytics') || route().current('admin.quizzes.batch-print') || route().current('admin.quizzes.collective-print')
-                                        ? 'bg-purple-600/20 text-purple-300 border border-purple-500/40 shadow-xs'
-                                        : 'text-slate-300 hover:text-white hover:bg-slate-800'
-                                ]"
-                            >
-                                <BarChart3 class="w-4 h-4 text-purple-400" />
-                                <span>Quiz Analytics</span>
-                            </Link>
-
-                            <!-- Question Bank & Bulk CSV (Admins & Facilitators) -->
-                            <Link
-                                v-if="isAdmin || isFacilitator"
-                                :href="route('admin.quizzes.questions.index')"
-                                :class="[
-                                    'px-3 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-1.5',
-                                    route().current('admin.quizzes.questions.*')
-                                        ? 'bg-amber-600/20 text-amber-300 border border-amber-500/40 shadow-xs'
-                                        : 'text-slate-300 hover:text-white hover:bg-slate-800'
-                                ]"
-                            >
-                                <HelpCircle class="w-4 h-4 text-amber-400" />
-                                <span>Question Bank</span>
-                            </Link>
-
-                            <!-- User Administration (Admins) -->
-                            <Link
-                                v-if="isAdmin"
-                                :href="route('admin.users.index')"
-                                :class="[
-                                    'px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2',
-                                    route().current('admin.users.*')
-                                        ? 'bg-teal-600/20 text-teal-400 border border-teal-500/30'
-                                        : 'text-slate-300 hover:text-white hover:bg-slate-800'
-                                ]"
-                            >
-                                <Users class="w-4 h-4" />
-                                <span>Users</span>
-                            </Link>
-
-                            <!-- System Audit Trail (Admins) -->
-                            <Link
-                                v-if="isAdmin"
-                                :href="route('admin.audit-logs.index')"
-                                :class="[
-                                    'px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2',
-                                    route().current('admin.audit-logs.*')
-                                        ? 'bg-teal-600/20 text-teal-400 border border-teal-500/30'
-                                        : 'text-slate-300 hover:text-white hover:bg-slate-800'
-                                ]"
-                            >
-                                <ShieldCheck class="w-4 h-4 text-emerald-400" />
-                                <span>System Audit</span>
                             </Link>
                         </div>
                     </div>
@@ -432,35 +444,42 @@ const showFlash = ref(true);
                 <!-- TVET Pedagogy Studio Links (Mobile) -->
                 <div v-if="isTeacher || isFacilitator || isAdmin" class="pt-2 pb-1 border-t border-slate-800/80">
                     <div class="px-3 text-[11px] font-bold uppercase tracking-wider text-rose-400 mb-1">
-                        TVET Pedagogy &amp; Instructional Design Studio
+                        Pedagogy Studio (Days 8–12)
                     </div>
                     <Link
                         :href="route('pedagogy.studio')"
                         class="block px-3 py-1.5 rounded-md text-sm font-medium text-rose-300 hover:bg-slate-800 flex items-center space-x-2"
                     >
                         <Sparkles class="w-4 h-4 text-rose-400" />
-                        <span>TVET Pedagogy Studio</span>
+                        <span>TVET Pedagogy Studio Hub</span>
+                    </Link>
+                    <Link
+                        :href="route('day8.wizard')"
+                        class="block px-3 py-1.5 rounded-md text-sm font-medium text-amber-300 hover:bg-slate-800 flex items-center space-x-2"
+                    >
+                        <Wand2 class="w-4 h-4 text-amber-400" />
+                        <span>Day 8 Practice Wizard</span>
                     </Link>
                     <Link
                         :href="route('pedagogy.lessons.builder')"
                         class="block px-3 py-1.5 rounded-md text-sm font-medium text-amber-300 hover:bg-slate-800 flex items-center space-x-2"
                     >
                         <Compass class="w-4 h-4 text-amber-400" />
-                        <span>Competency-Based Lesson Builder</span>
+                        <span>Day 9 Lesson Builder</span>
                     </Link>
                     <Link
                         :href="route('pedagogy.inclusive-designer.index')"
                         class="block px-3 py-1.5 rounded-md text-sm font-medium text-teal-300 hover:bg-slate-800 flex items-center space-x-2"
                     >
                         <Wand2 class="w-4 h-4 text-teal-400" />
-                        <span>Inclusive Lesson Designer</span>
+                        <span>Day 10 Inclusive Designer</span>
                     </Link>
                     <Link
                         :href="route('pedagogy.demo-project-planner')"
                         class="block px-3 py-1.5 rounded-md text-sm font-medium text-blue-300 hover:bg-slate-800 flex items-center space-x-2"
                     >
                         <Wrench class="w-4 h-4 text-blue-400" />
-                        <span>Demonstration and Project Planner</span>
+                        <span>Demo &amp; Project Planner</span>
                     </Link>
                     <Link
                         :href="route('pedagogy.workshop-planner')"
@@ -469,85 +488,111 @@ const showFlash = ref(true);
                         <Settings2 class="w-4 h-4 text-emerald-400" />
                         <span>Workshop Management Planner</span>
                     </Link>
+                    <Link
+                        :href="route('rubrics.index')"
+                        class="block px-3 py-1.5 rounded-md text-sm font-medium text-slate-200 hover:bg-slate-800 flex items-center space-x-2"
+                    >
+                        <Award class="w-4 h-4 text-teal-400" />
+                        <span>Assessment Rubrics Designer</span>
+                    </Link>
+                    <Link
+                        :href="route('portfolio.index')"
+                        class="block px-3 py-1.5 rounded-md text-sm font-medium text-purple-300 hover:bg-slate-800 flex items-center space-x-2"
+                    >
+                        <Briefcase class="w-4 h-4 text-purple-400" />
+                        <span>My Teaching Portfolio</span>
+                    </Link>
+                </div>
+
+                <!-- Exams & Assessments (Mobile) -->
+                <div class="pt-2 pb-1 border-t border-slate-800/80">
+                    <div class="px-3 text-[11px] font-bold uppercase tracking-wider text-amber-400 mb-1">
+                        Exams &amp; MCQs
+                    </div>
+                    <Link
+                        :href="route('quizzes.index')"
+                        class="block px-3 py-1.5 rounded-md text-sm font-medium text-amber-300 hover:bg-slate-800 flex items-center space-x-2"
+                    >
+                        <CheckSquare class="w-4 h-4 text-amber-400" />
+                        <span>Available Competency Exams</span>
+                    </Link>
+                    <Link
+                        v-if="isAdmin || isFacilitator"
+                        :href="route('admin.quizzes.questions.index')"
+                        class="block px-3 py-1.5 rounded-md text-sm font-medium text-teal-300 hover:bg-slate-800 flex items-center space-x-2"
+                    >
+                        <HelpCircle class="w-4 h-4 text-teal-400" />
+                        <span>Question Bank &amp; Bulk CSV</span>
+                    </Link>
+                    <Link
+                        v-if="isAdmin || isFacilitator"
+                        :href="route('admin.quizzes.analytics')"
+                        class="block px-3 py-1.5 rounded-md text-sm font-medium text-purple-300 hover:bg-slate-800 flex items-center space-x-2"
+                    >
+                        <BarChart3 class="w-4 h-4 text-purple-400" />
+                        <span>Results Analytics &amp; Reports</span>
+                    </Link>
+                    <Link
+                        v-if="isAdmin || isFacilitator"
+                        :href="route('admin.quizzes.collective-print')"
+                        class="block px-3 py-1.5 rounded-md text-sm font-medium text-blue-300 hover:bg-slate-800 flex items-center space-x-2"
+                    >
+                        <Printer class="w-4 h-4 text-blue-400" />
+                        <span>Print Collective Scorecards</span>
+                    </Link>
+                    <Link
+                        :href="route('quizzes.guide')"
+                        class="block px-3 py-1.5 rounded-md text-sm font-medium text-amber-300 hover:bg-slate-800 flex items-center space-x-2"
+                    >
+                        <BookMarked class="w-4 h-4 text-amber-400" />
+                        <span>Exam Module User Guide</span>
+                    </Link>
+                </div>
+
+                <!-- Admin & Management (Mobile) -->
+                <div v-if="isAdmin || isFacilitator" class="pt-2 pb-1 border-t border-slate-800/80">
+                    <div class="px-3 text-[11px] font-bold uppercase tracking-wider text-purple-400 mb-1">
+                        Administration &amp; Oversight
+                    </div>
+                    <Link
+                        :href="route('facilitator.pedagogy-reviews.index')"
+                        class="block px-3 py-1.5 rounded-md text-sm font-medium text-purple-300 hover:bg-slate-800 flex items-center space-x-2"
+                    >
+                        <Award class="w-4 h-4 text-purple-400" />
+                        <span>Facilitator Reviews Portal</span>
+                    </Link>
+                    <Link
+                        :href="route('teacher-documents.index')"
+                        class="block px-3 py-1.5 rounded-md text-sm font-medium text-teal-300 hover:bg-slate-800 flex items-center space-x-2"
+                    >
+                        <FileDown class="w-4 h-4 text-teal-400" />
+                        <span>Teacher Documents Repository</span>
+                    </Link>
+                    <Link
+                        v-if="isAdmin"
+                        :href="route('admin.users.index')"
+                        class="block px-3 py-1.5 rounded-md text-sm font-medium text-blue-300 hover:bg-slate-800 flex items-center space-x-2"
+                    >
+                        <Users class="w-4 h-4 text-blue-400" />
+                        <span>User Management (200 Teachers)</span>
+                    </Link>
+                    <Link
+                        v-if="isAdmin"
+                        :href="route('admin.audit-logs.index')"
+                        class="block px-3 py-1.5 rounded-md text-sm font-medium text-emerald-400 hover:bg-slate-800 flex items-center space-x-2"
+                    >
+                        <ShieldCheck class="w-4 h-4 text-emerald-400" />
+                        <span>System Audit Trail</span>
+                    </Link>
                 </div>
 
                 <Link
-                    v-if="isTeacher || isFacilitator || isAdmin"
-                    :href="route('day8.wizard')"
-                    class="block px-3 py-2 rounded-md text-base font-medium text-amber-300 hover:bg-slate-800"
-                >
-                    Day 8 Practical Wizard (TVET)
-                </Link>
-
-                <Link
-                    v-if="isFacilitator || isAdmin"
-                    :href="route('facilitator.pedagogy-reviews.index')"
-                    class="block px-3 py-2 rounded-md text-base font-medium text-purple-300 hover:bg-slate-800 flex items-center space-x-2"
-                >
-                    <Award class="w-4 h-4 text-purple-400" />
-                    <span>Facilitator Reviews Portal</span>
-                </Link>
-
-                <Link
-                    v-if="isTeacher || isAdmin"
-                    :href="route('rubrics.index')"
-                    class="block px-3 py-2 rounded-md text-base font-medium text-slate-200 hover:bg-slate-800"
-                >
-                    Rubrics
-                </Link>
-                <Link
-                    v-if="isTeacher"
-                    :href="route('portfolio.index')"
-                    class="block px-3 py-2 rounded-md text-base font-medium text-slate-200 hover:bg-slate-800 flex items-center space-x-2"
-                >
-                    <Briefcase class="w-4 h-4 text-teal-400" />
-                    <span>My Teaching Portfolio</span>
-                </Link>
-                <Link
-                    v-if="isTeacher || isFacilitator || isAdmin"
+                    v-else-if="isTeacher"
                     :href="route('teacher-documents.index')"
                     class="block px-3 py-2 rounded-md text-base font-medium text-slate-200 hover:bg-slate-800 flex items-center space-x-2"
                 >
                     <FileDown class="w-4 h-4 text-teal-400" />
                     <span>Teacher Documents &amp; PDFs</span>
-                </Link>
-                <Link
-                    :href="route('quizzes.index')"
-                    class="block px-3 py-2 rounded-md text-base font-medium text-amber-300 hover:bg-slate-800 flex items-center space-x-2"
-                >
-                    <CheckSquare class="w-4 h-4 text-amber-400" />
-                    <span>MCQ Competency Quiz</span>
-                </Link>
-                <Link
-                    v-if="isAdmin || isFacilitator"
-                    :href="route('admin.quizzes.analytics')"
-                    class="block px-3 py-2 rounded-md text-base font-medium text-purple-300 hover:bg-slate-800 flex items-center space-x-2"
-                >
-                    <BarChart3 class="w-4 h-4 text-purple-400" />
-                    <span>Quiz Analytics &amp; Evaluation</span>
-                </Link>
-                <Link
-                    v-if="isAdmin || isFacilitator"
-                    :href="route('admin.quizzes.questions.index')"
-                    class="block px-3 py-2 rounded-md text-base font-medium text-amber-300 hover:bg-slate-800 flex items-center space-x-2"
-                >
-                    <HelpCircle class="w-4 h-4 text-amber-400" />
-                    <span>Set Questions &amp; Bulk CSV</span>
-                </Link>
-                <Link
-                    v-if="isAdmin"
-                    :href="route('admin.users.index')"
-                    class="block px-3 py-2 rounded-md text-base font-medium text-slate-200 hover:bg-slate-800"
-                >
-                    Users &amp; 200 Teachers Management
-                </Link>
-                <Link
-                    v-if="isAdmin"
-                    :href="route('admin.audit-logs.index')"
-                    class="block px-3 py-2 rounded-md text-base font-medium text-emerald-400 hover:bg-slate-800 flex items-center space-x-2"
-                >
-                    <ShieldCheck class="w-4 h-4 text-emerald-400" />
-                    <span>System Audit Trail</span>
                 </Link>
 
                 <Link

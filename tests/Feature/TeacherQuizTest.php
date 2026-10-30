@@ -62,6 +62,17 @@ class TeacherQuizTest extends TestCase
         );
     }
 
+    public function test_user_can_view_quiz_module_user_guide(): void
+    {
+        $response = $this->actingAs($this->teacher)->get(route('quizzes.guide'));
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->component('Teacher/Quizzes/Guide')
+            ->has('isEvaluator')
+        );
+    }
+
     public function test_teacher_can_view_assessment_taking_screen(): void
     {
         $response = $this->actingAs($this->teacher)->get(route('quizzes.show', $this->quiz->id));
