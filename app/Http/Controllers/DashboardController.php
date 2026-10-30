@@ -68,6 +68,8 @@ class DashboardController extends Controller
             ->take(6)
             ->get();
 
+        $recentDocuments = TeacherDocument::latest('created_at')->take(5)->get();
+
         return Inertia::render('Admin/Dashboard', [
             'metrics' => [
                 'total_teachers' => $totalTeachers,
@@ -86,6 +88,7 @@ class DashboardController extends Controller
             ],
             'trade_distribution' => $tradeDistribution,
             'recent_audits' => $recentAudits,
+            'recent_documents' => $recentDocuments,
         ]);
     }
 
