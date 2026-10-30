@@ -191,6 +191,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::match(['get', 'post'], '/admin/quiz-analytics/batch-print', [TeacherQuizController::class, 'batchIndividualPrint'])->name('admin.quizzes.batch-print');
     Route::get('/admin/quiz-analytics/export-csv', [TeacherQuizController::class, 'exportCsv'])->name('admin.quizzes.export-csv');
 
+    // MCQ Questions Setting & Bulk CSV Upload
+    Route::get('/admin/quizzes/questions/sample-csv', [TeacherQuizController::class, 'downloadSampleCsv'])->name('admin.quizzes.questions.sample-csv');
+    Route::get('/admin/quizzes/{quiz?}/questions', [TeacherQuizController::class, 'manageQuestions'])->name('admin.quizzes.questions.index');
+    Route::post('/admin/quizzes/{quiz}/questions', [TeacherQuizController::class, 'storeQuestion'])->name('admin.quizzes.questions.store');
+    Route::put('/admin/quizzes/questions/{question}', [TeacherQuizController::class, 'updateQuestion'])->name('admin.quizzes.questions.update');
+    Route::delete('/admin/quizzes/questions/{question}', [TeacherQuizController::class, 'destroyQuestion'])->name('admin.quizzes.questions.destroy');
+    Route::post('/admin/quizzes/{quiz}/questions/bulk-csv', [TeacherQuizController::class, 'bulkUploadCsv'])->name('admin.quizzes.questions.bulk-csv');
+
     // User Administration & Bulk 200 Teacher Import
     Route::get('/admin/users', [UserManagementController::class, 'index'])->name('admin.users.index');
     Route::post('/admin/users', [UserManagementController::class, 'store'])->name('admin.users.store');

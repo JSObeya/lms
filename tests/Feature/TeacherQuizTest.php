@@ -8,6 +8,7 @@ use App\Models\User;
 use Database\Seeders\RoleAndCategorySeeder;
 use Database\Seeders\TvEtCompetencyQuizSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class TeacherQuizTest extends TestCase
@@ -263,5 +264,124 @@ class TeacherQuizTest extends TestCase
         $response->assertStatus(200);
         $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
         $this->assertStringContainsString('TVET_Teacher_MCQ_Evaluation_Results', $response->headers->get('content-disposition'));
+    }
+
+    public function test_evaluator_can_view_question_management_screen(): void
+    {
+        $response = $this->actingAs($this->admin)->get(route('admin.quizzes.questions.index', $this->quiz->id));
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->component('Teacher/Quizzes/ManageQuestions')
+            ->has('questions.data')
+            ->has('availableCategories')
+            ->where('quiz.total_questions', 50)
+        );
+    }
+
+    public function test_evaluator_can_create_mcq_question_in_category(): void
+    {
+        $response = $this->actingAs($this->admin)->post(route('admin.quizzes.questions.store', $this->quiz->id), [
+            'category' => 'Solar PV Installation and Maintenance',
+            'question_text' => 'What is the function of a bypass diode in a photovoltaic solar module?',
+            'option_a' => 'To convert AC to DC electricity',
+            'option_b' => 'To prevent hotspot heating by routing current around shaded cells',
+            'option_c' => 'To increase battery storage capacity',
+            'option_d' => 'To ground the metallic panel frame',
+            'correct_option' => 'b',
+            'explanation' => 'Bypass diodes prevent shaded cells from becoming high-resistance reverse-biased loads.',
+            'points' => 1,
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('quiz_questions', [
+            'quiz_id' => $this->quiz->id,
+            'category' => 'Solar PV Installation and Maintenance',
+            'correct_option' => 'b',
+            'question_number' => 51,
+        ]);
+
+        $this->assertEquals(51, $this->quiz->fresh()->total_questions);
+    }
+
+    public function test_evaluator_can_update_mcq_question(): void
+    {
+        $question = $this->quiz->questions()->first();
+
+        $response = $this->actingAs($this->admin)->put(route('admin.quizzes.questions.update', $question->id), [
+            'category' => 'Updated Category',
+            'question_text' => 'Updated question text content?',
+            'option_a' => 'Option Alpha',
+            'option_b' => 'Option Beta',
+            'option_c' => 'Option Gamma',
+            'option_d' => 'Option Delta',
+            'correct_option' => 'c',
+            'explanation' => 'Updated explanation',
+            'points' => 2,
+        ]);
+
+        $response->assertRedirect();
+        $this->assertEquals('Updated question text content?', $question->fresh()->question_text);
+        $this->assertEquals('c', $question->fresh()->correct_option);
+        $this->assertEquals(2, $question->fresh()->points);
+    }
+
+    public function test_evaluator_can_delete_mcq_question(): void
+    {
+        $question = $this->quiz->questions()->where('question_number', 5)->first();
+
+        $response = $this->actingAs($this->admin)->delete(route('admin.quizzes.questions.destroy', $question->id));
+
+        $response->assertRedirect();
+        $this->assertDatabaseMissing('quiz_questions', ['id' => $question->id]);
+        $this->assertEquals(49, $this->quiz->fresh()->total_questions);
+    }
+
+    public function test_evaluator_can_download_sample_csv(): void
+    {
+        $response = $this->actingAs($this->admin)->get(route('admin.quizzes.questions.sample-csv'));
+
+        $response->assertStatus(200);
+        $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
+        $this->assertStringContainsString('sample_tvet_mcq_questions_template.csv', $response->headers->get('content-disposition'));
+    }
+
+    public function test_evaluator_can_bulk_upload_questions_via_csv(): void
+    {
+        $csvContent = "category,question_text,option_a,option_b,option_c,option_d,correct_option,explanation,points\n";
+        $csvContent .= "Welding,What is MIG welding?,Metal Inert Gas,Manual Internal Gas,Micro Ion Gas,Main Iron Gas,a,Metal Inert Gas welding,1\n";
+        $csvContent .= "Electrical,What unit measures current?,Volt,Ampere,Ohm,Watt,b,Current is measured in Amperes,1\n";
+
+        $file = UploadedFile::fake()->createWithContent('new_questions.csv', $csvContent);
+
+        $response = $this->actingAs($this->admin)->post(route('admin.quizzes.questions.bulk-csv', $this->quiz->id), [
+            'csv_file' => $file,
+            'mode' => 'append',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('quiz_questions', [
+            'quiz_id' => $this->quiz->id,
+            'category' => 'Welding',
+            'correct_option' => 'a',
+        ]);
+
+        $this->assertDatabaseHas('quiz_questions', [
+            'quiz_id' => $this->quiz->id,
+            'category' => 'Electrical',
+            'correct_option' => 'b',
+        ]);
+
+        $this->assertEquals(52, $this->quiz->fresh()->total_questions);
+    }
+
+    public function test_teacher_cannot_manage_questions(): void
+    {
+        $response = $this->actingAs($this->teacher)->get(route('admin.quizzes.questions.index', $this->quiz->id));
+        $response->assertStatus(403);
     }
 }

@@ -22,7 +22,8 @@ import {
     TrendingUp,
     FileText,
     Layers,
-    RotateCcw
+    RotateCcw,
+    HelpCircle
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -160,6 +161,14 @@ const exportCsv = () => {
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2">
+                    <Link
+                        :href="route('admin.quizzes.questions.index')"
+                        class="inline-flex items-center space-x-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-bold shadow-sm transition"
+                    >
+                        <HelpCircle class="w-4 h-4" />
+                        <span>Set Questions &amp; Bulk CSV</span>
+                    </Link>
+
                     <button
                         @click="printCollective"
                         class="inline-flex items-center space-x-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold shadow-sm transition"
@@ -382,6 +391,14 @@ const exportCsv = () => {
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2">
+                    <Link
+                        :href="route('admin.quizzes.questions.index')"
+                        class="inline-flex items-center space-x-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-xl text-xs font-bold shadow-sm transition"
+                    >
+                        <HelpCircle class="w-4 h-4" />
+                        <span>Set Questions &amp; Bulk CSV</span>
+                    </Link>
+
                     <button
                         @click="printCollective"
                         class="px-4 py-2 bg-white text-purple-900 font-bold rounded-xl text-xs shadow-xs hover:bg-purple-50 transition flex items-center space-x-1.5"
@@ -549,3 +566,4 @@ const exportCsv = () => {
         </div>
     </AuthenticatedLayout>
 </template>
+

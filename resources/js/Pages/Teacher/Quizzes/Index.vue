@@ -53,7 +53,15 @@ const props = defineProps({
                     </div>
                 </div>
 
-                <div v-if="isEvaluator" class="flex items-center space-x-2">
+                <div v-if="isEvaluator" class="flex flex-wrap items-center gap-2">
+                    <Link
+                        :href="route('admin.quizzes.questions.index')"
+                        class="inline-flex items-center space-x-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold shadow-sm transition"
+                    >
+                        <HelpCircle class="w-4 h-4 text-amber-400" />
+                        <span>Set Questions &amp; Bulk CSV</span>
+                    </Link>
+
                     <Link
                         :href="route('admin.quizzes.analytics')"
                         class="inline-flex items-center space-x-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-semibold shadow-sm transition"
@@ -185,6 +193,15 @@ const props = defineProps({
                             </Link>
 
                             <Link
+                                v-if="isEvaluator"
+                                :href="route('admin.quizzes.questions.index', quiz.id)"
+                                class="w-full inline-flex items-center justify-center space-x-2 px-4 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/40 dark:hover:bg-purple-900/40 text-purple-700 dark:text-purple-300 font-semibold text-xs border border-purple-200 dark:border-purple-800 transition"
+                            >
+                                <HelpCircle class="w-3.5 h-3.5 text-purple-500" />
+                                <span>Set / Bulk Upload MCQs</span>
+                            </Link>
+
+                            <Link
                                 v-if="quiz.latest_attempt"
                                 :href="route('quizzes.attempt.print', quiz.latest_attempt.id)"
                                 class="w-full inline-flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-semibold text-xs border border-slate-200 dark:border-slate-700 transition"
@@ -209,3 +226,4 @@ const props = defineProps({
         </div>
     </AuthenticatedLayout>
 </template>
+
