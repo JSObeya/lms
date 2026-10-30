@@ -206,4 +206,60 @@ class TeacherDocumentTest extends TestCase
         $response->assertRedirect();
         $this->assertSoftDeleted('teacher_documents', ['id' => $doc->id]);
     }
+
+    public function test_admin_can_bulk_upload_multiple_documents_up_to_60mb(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('lms_admin');
+
+        $file1 = UploadedFile::fake()->create('Curriculum_Module_1.pdf', 35000, 'application/pdf'); // 35MB
+        $file2 = UploadedFile::fake()->create('Curriculum_Module_2.docx', 42000, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'); // 42MB
+
+        $response = $this->actingAs($admin)->post(route('teacher-documents.bulk-store'), [
+            'category' => 'Curriculum & Standards',
+            'target_audience' => 'teachers',
+            'is_published' => true,
+            'documents' => [$file1, $file2],
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('teacher_documents', [
+            'file_name' => 'Curriculum_Module_1.pdf',
+            'category' => 'Curriculum & Standards',
+            'file_extension' => 'pdf',
+            'is_published' => true,
+            'uploaded_by' => $admin->id,
+        ]);
+
+        $this->assertDatabaseHas('teacher_documents', [
+            'file_name' => 'Curriculum_Module_2.docx',
+            'category' => 'Curriculum & Standards',
+            'file_extension' => 'docx',
+            'is_published' => true,
+            'uploaded_by' => $admin->id,
+        ]);
+
+        $this->assertDatabaseHas('audit_logs', [
+            'user_id' => $admin->id,
+            'action' => 'teacher_documents_bulk_uploaded',
+        ]);
+    }
+
+    public function test_teacher_cannot_bulk_upload_documents(): void
+    {
+        $teacher = User::factory()->create();
+        $teacher->assignRole('teacher');
+
+        $file = UploadedFile::fake()->create('Unauthorized_Bulk.pdf', 500, 'application/pdf');
+
+        $response = $this->actingAs($teacher)->post(route('teacher-documents.bulk-store'), [
+            'category' => 'General',
+            'target_audience' => 'teachers',
+            'documents' => [$file],
+        ]);
+
+        $response->assertStatus(403);
+    }
 }

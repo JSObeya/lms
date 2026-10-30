@@ -171,6 +171,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Central Document Repository for Teachers & Administrators (Upload & PDF Downloads)
     Route::get('/teacher-documents', [TeacherDocumentController::class, 'index'])->name('teacher-documents.index');
     Route::post('/teacher-documents', [TeacherDocumentController::class, 'store'])->name('teacher-documents.store');
+    Route::post('/teacher-documents/bulk-upload', [TeacherDocumentController::class, 'bulkStore'])->name('teacher-documents.bulk-store');
     Route::get('/teacher-documents/{teacherDocument}/download', [TeacherDocumentController::class, 'download'])->name('teacher-documents.download');
     Route::get('/teacher-documents/{teacherDocument}/preview', [TeacherDocumentController::class, 'preview'])->name('teacher-documents.preview');
     Route::put('/teacher-documents/{teacherDocument}', [TeacherDocumentController::class, 'update'])->name('teacher-documents.update');

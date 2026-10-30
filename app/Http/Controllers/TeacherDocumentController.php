@@ -116,7 +116,7 @@ class TeacherDocumentController extends Controller
             'category' => 'required|string|max:100',
             'description' => 'nullable|string|max:2000',
             'target_audience' => 'required|in:teachers,all,facilitators',
-            'document_file' => 'required|file|max:30720|mimes:pdf,docx,doc,xlsx,xls,pptx,ppt,txt,zip',
+            'document_file' => 'required|file|max:61440|mimes:pdf,docx,doc,xlsx,xls,pptx,ppt,txt,zip',
             'is_published' => 'nullable|boolean',
         ]);
 
@@ -157,6 +157,74 @@ class TeacherDocumentController extends Controller
     }
 
     /**
+     * Store multiple uploaded documents in bulk by admin.
+     */
+    public function bulkStore(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        if (! $user->hasRole(['super_admin', 'lms_admin'])) {
+            abort(403, 'Only administrators can bulk upload documents.');
+        }
+
+        $validated = $request->validate([
+            'category' => 'required|string|max:100',
+            'target_audience' => 'required|in:teachers,all,facilitators',
+            'is_published' => 'nullable|boolean',
+            'documents' => 'required|array|min:1|max:50',
+            'documents.*' => 'required|file|max:61440|mimes:pdf,docx,doc,xlsx,xls,pptx,ppt,txt,zip',
+        ]);
+
+        $uploadedCount = 0;
+        $isPublished = $request->boolean('is_published', true);
+        $files = $request->file('documents', []);
+
+        foreach ($files as $file) {
+            if (! $file || ! $file->isValid()) {
+                continue;
+            }
+
+            $originalName = $file->getClientOriginalName();
+            $extension = strtolower($file->getClientOriginalExtension() ?: $file->guessExtension() ?: 'bin');
+            $mimeType = $file->getMimeType() ?: 'application/octet-stream';
+            $fileSize = $file->getSize();
+
+            // Generate clean human-readable title from file basename
+            $baseName = pathinfo($originalName, PATHINFO_FILENAME);
+            $cleanTitle = trim((string) preg_replace('/[_\-\s]+/', ' ', $baseName));
+            $cleanTitle = Str::headline($cleanTitle);
+
+            // Store file with unique hash in private teacher_documents folder
+            $storedName = Str::random(40).'.'.$extension;
+            $filePath = $file->storeAs('teacher_documents', $storedName, 'local');
+
+            $document = TeacherDocument::create([
+                'uploaded_by' => $user->id,
+                'title' => $cleanTitle ?: $originalName,
+                'category' => $validated['category'],
+                'description' => 'Uploaded in bulk on '.now()->format('M d, Y'),
+                'target_audience' => $validated['target_audience'],
+                'file_path' => $filePath,
+                'file_name' => $originalName,
+                'file_size' => $fileSize,
+                'mime_type' => $mimeType,
+                'file_extension' => $extension,
+                'download_count' => 0,
+                'is_published' => $isPublished,
+            ]);
+
+            $uploadedCount++;
+        }
+
+        AuditLog::record('teacher_documents_bulk_uploaded', TeacherDocument::class, null, [
+            'count' => $uploadedCount,
+            'category' => $validated['category'],
+            'target_audience' => $validated['target_audience'],
+        ]);
+
+        return back()->with('success', "Successfully uploaded {$uploadedCount} documents (up to 60MB each) for teachers.");
+    }
+
+    /**
      * Update an existing teacher document.
      */
     public function update(Request $request, TeacherDocument $teacherDocument): RedirectResponse
@@ -172,7 +240,7 @@ class TeacherDocumentController extends Controller
             'description' => 'nullable|string|max:2000',
             'target_audience' => 'required|in:teachers,all,facilitators',
             'is_published' => 'required|boolean',
-            'document_file' => 'nullable|file|max:30720|mimes:pdf,docx,doc,xlsx,xls,pptx,ppt,txt,zip',
+            'document_file' => 'nullable|file|max:61440|mimes:pdf,docx,doc,xlsx,xls,pptx,ppt,txt,zip',
         ]);
 
         $updateData = [

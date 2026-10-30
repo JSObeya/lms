@@ -30,7 +30,8 @@ import {
     Clock,
     User,
     X,
-    FileDown
+    FileDown,
+    Files
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -62,12 +63,13 @@ const selectedFileType = ref(props.filters.file_type || 'all');
 
 // Modals
 const showUploadModal = ref(false);
+const showBulkModal = ref(false);
 const showEditModal = ref(false);
 const showDeleteModal = ref(false);
 const documentToEdit = ref(null);
 const documentToDelete = ref(null);
 
-// Upload Form
+// Upload Form (Single, Max 60MB)
 const uploadForm = useForm({
     title: '',
     category: props.categories[0] || 'Curriculum & Standards',
@@ -76,6 +78,16 @@ const uploadForm = useForm({
     is_published: true,
     document_file: null,
 });
+
+// Bulk Upload Form (Multiple files, Max 60MB each, up to 50 files)
+const bulkForm = useForm({
+    category: props.categories[0] || 'Curriculum & Standards',
+    target_audience: 'teachers',
+    is_published: true,
+    documents: [],
+});
+
+const selectedBulkFiles = ref([]);
 
 // Edit Form
 const editForm = useForm({
@@ -120,6 +132,28 @@ const submitUpload = () => {
         onSuccess: () => {
             showUploadModal.value = false;
             uploadForm.reset();
+        },
+    });
+};
+
+const handleBulkFileUpload = (event) => {
+    const files = Array.from(event.target.files || []);
+    selectedBulkFiles.value = files;
+    bulkForm.documents = files;
+};
+
+const removeBulkFile = (index) => {
+    selectedBulkFiles.value.splice(index, 1);
+    bulkForm.documents = [...selectedBulkFiles.value];
+};
+
+const submitBulkUpload = () => {
+    bulkForm.post(route('teacher-documents.bulk-store'), {
+        preserveScroll: true,
+        onSuccess: () => {
+            showBulkModal.value = false;
+            bulkForm.reset();
+            selectedBulkFiles.value = [];
         },
     });
 };
@@ -220,13 +254,21 @@ const formatDate = (dateString) => {
                     </div>
                 </div>
 
-                <div v-if="canManage" class="flex items-center space-x-3">
+                <div v-if="canManage" class="flex flex-wrap items-center gap-2.5">
+                    <button
+                        @click="showBulkModal = true"
+                        class="inline-flex items-center px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold rounded-xl shadow-xs transition border border-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    >
+                        <Files class="w-4 h-4 mr-2 text-teal-400" />
+                        <span>Bulk Upload (Max 60MB)</span>
+                    </button>
+
                     <button
                         @click="showUploadModal = true"
                         class="inline-flex items-center px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold rounded-xl shadow-sm shadow-teal-600/30 transition focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
                     >
                         <Plus class="w-4 h-4 mr-2" />
-                        Upload Document
+                        <span>Upload Single</span>
                     </button>
                 </div>
             </div>
@@ -640,7 +682,7 @@ const formatDate = (dateString) => {
 
                     <!-- File Input -->
                     <div>
-                        <InputLabel for="upload-file" value="Select File to Upload * (PDF Recommended, Max 30MB)" />
+                        <InputLabel for="upload-file" value="Select File to Upload * (PDF Recommended, Max 60MB)" />
                         <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 dark:border-slate-700 border-dashed rounded-xl bg-slate-50 dark:bg-slate-900/40 hover:bg-slate-100/50 transition">
                             <div class="space-y-1 text-center">
                                 <FileText class="mx-auto h-10 w-10 text-teal-500" />
@@ -663,7 +705,7 @@ const formatDate = (dateString) => {
                                     <p class="pl-1">or drag and drop</p>
                                 </div>
                                 <p class="text-xs text-slate-500 dark:text-slate-400">
-                                    PDF, Word DOCX, Excel XLSX, PPTX, or ZIP up to 30MB
+                                    PDF, Word DOCX, Excel XLSX, PPTX, or ZIP up to 60MB
                                 </p>
                                 <p v-if="uploadForm.document_file" class="text-xs font-bold text-teal-600 dark:text-teal-400 pt-2 flex items-center justify-center space-x-1">
                                     <CheckCircle2 class="w-4 h-4" />
@@ -695,6 +737,159 @@ const formatDate = (dateString) => {
                         <PrimaryButton :disabled="uploadForm.processing" class="bg-teal-600 hover:bg-teal-700">
                             <span v-if="uploadForm.processing">Uploading...</span>
                             <span v-else>Upload Document</span>
+                        </PrimaryButton>
+                    </div>
+                </form>
+            </div>
+        </Modal>
+
+        <!-- ========================================================= -->
+        <!-- Admin Bulk Upload Documents Modal (Up to 60MB each, multiple files) -->
+        <!-- ========================================================= -->
+        <Modal :show="showBulkModal" @close="showBulkModal = false" max-width="3xl">
+            <div class="p-6 space-y-5">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+                    <div class="flex items-center space-x-2.5">
+                        <div class="p-2 bg-teal-500/10 rounded-xl text-teal-600 dark:text-teal-400">
+                            <Files class="w-5 h-5" />
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-slate-900 dark:text-white">
+                                Bulk Upload Documents for Teachers
+                            </h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">
+                                Upload multiple PDF manuals, syllabi, or teaching guides at once (Up to 60MB per file).
+                            </p>
+                        </div>
+                    </div>
+                    <button @click="showBulkModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                        <X class="w-5 h-5" />
+                    </button>
+                </div>
+
+                <form @submit.prevent="submitBulkUpload" class="space-y-4">
+                    <!-- Category & Audience Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <InputLabel for="bulk-category" value="Category for All Uploaded Files *" />
+                            <select
+                                id="bulk-category"
+                                v-model="bulkForm.category"
+                                class="mt-1 block w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl py-2 px-3 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                required
+                            >
+                                <option v-for="cat in categories" :key="cat" :value="cat">
+                                    {{ cat }}
+                                </option>
+                            </select>
+                            <InputError :message="bulkForm.errors.category" class="mt-1" />
+                        </div>
+
+                        <div>
+                            <InputLabel for="bulk-audience" value="Target Audience *" />
+                            <select
+                                id="bulk-audience"
+                                v-model="bulkForm.target_audience"
+                                class="mt-1 block w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl py-2 px-3 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                required
+                            >
+                                <option value="teachers">Technical Teachers (TVET)</option>
+                                <option value="all">All Roles (Teachers, Facilitators, Trainees)</option>
+                                <option value="facilitators">Facilitators &amp; Lead Instructors Only</option>
+                            </select>
+                            <InputError :message="bulkForm.errors.target_audience" class="mt-1" />
+                        </div>
+                    </div>
+
+                    <!-- Multi-file picker -->
+                    <div>
+                        <InputLabel for="bulk_documents" value="Select Multiple Documents * (Max 60MB per file, up to 50 files)" />
+                        <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 dark:border-slate-700 border-dashed rounded-xl bg-slate-50 dark:bg-slate-900/40 hover:bg-slate-100/50 transition">
+                            <div class="space-y-1 text-center">
+                                <UploadCloud class="mx-auto h-10 w-10 text-teal-500" />
+                                <div class="flex text-sm text-slate-600 dark:text-slate-400 justify-center">
+                                    <label
+                                        for="bulk_documents"
+                                        class="relative cursor-pointer font-semibold text-teal-600 dark:text-teal-400 hover:underline"
+                                    >
+                                        <span>Click to select multiple files</span>
+                                        <input
+                                            id="bulk_documents"
+                                            name="bulk_documents[]"
+                                            type="file"
+                                            multiple
+                                            class="sr-only"
+                                            accept=".pdf,.doc,.docx,.xlsx,.xls,.pptx,.ppt,.txt,.zip"
+                                            @change="handleBulkFileUpload"
+                                            required
+                                        />
+                                    </label>
+                                    <p class="pl-1">or drag and drop</p>
+                                </div>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">
+                                    Hold Shift or Ctrl to select multiple PDF, DOCX, XLSX, or PPTX files up to 60MB each
+                                </p>
+                            </div>
+                        </div>
+                        <InputError :message="bulkForm.errors.documents" class="mt-1" />
+                    </div>
+
+                    <!-- Selected Files Queue -->
+                    <div v-if="selectedBulkFiles.length > 0" class="space-y-2">
+                        <div class="flex items-center justify-between text-xs font-semibold text-slate-700 dark:text-slate-300">
+                            <span>Selected Queue ({{ selectedBulkFiles.length }} files):</span>
+                            <span>Total Size: {{ (selectedBulkFiles.reduce((acc, f) => acc + f.size, 0) / 1024 / 1024).toFixed(2) }} MB</span>
+                        </div>
+
+                        <div class="max-h-56 overflow-y-auto space-y-1.5 p-2 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200 dark:border-slate-800">
+                            <div
+                                v-for="(file, idx) in selectedBulkFiles"
+                                :key="idx"
+                                class="flex items-center justify-between p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-xs"
+                            >
+                                <div class="flex items-center space-x-2 truncate min-w-0 pr-2">
+                                    <FileText class="w-4 h-4 text-teal-500 shrink-0" />
+                                    <span class="font-medium text-slate-800 dark:text-slate-200 truncate">{{ file.name }}</span>
+                                </div>
+                                <div class="flex items-center space-x-3 shrink-0">
+                                    <span class="text-slate-400 text-[11px]">{{ (file.size / 1024 / 1024).toFixed(2) }} MB</span>
+                                    <button
+                                        type="button"
+                                        @click="removeBulkFile(idx)"
+                                        class="text-rose-500 hover:text-rose-700 dark:hover:text-rose-400 p-1 rounded"
+                                        title="Remove file from queue"
+                                    >
+                                        <X class="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Published status -->
+                    <div class="flex items-center space-x-2 pt-2">
+                        <input
+                            id="bulk-published"
+                            v-model="bulkForm.is_published"
+                            type="checkbox"
+                            class="rounded border-slate-300 text-teal-600 focus:ring-teal-500 h-4 w-4"
+                        />
+                        <label for="bulk-published" class="text-xs font-medium text-slate-700 dark:text-slate-300">
+                            Publish all files immediately for teacher download
+                        </label>
+                    </div>
+
+                    <!-- Modal Actions -->
+                    <div class="flex items-center justify-end space-x-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+                        <SecondaryButton @click="showBulkModal = false">
+                            Cancel
+                        </SecondaryButton>
+                        <PrimaryButton
+                            :disabled="bulkForm.processing || selectedBulkFiles.length === 0"
+                            class="bg-teal-600 hover:bg-teal-700"
+                        >
+                            <span v-if="bulkForm.processing">Uploading {{ selectedBulkFiles.length }} Documents...</span>
+                            <span v-else>Upload {{ selectedBulkFiles.length }} Document(s) (Up to 60MB)</span>
                         </PrimaryButton>
                     </div>
                 </form>
