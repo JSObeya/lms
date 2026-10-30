@@ -26,7 +26,8 @@ import {
     Sparkles,
     FileDown,
     CheckSquare,
-    BarChart3
+    BarChart3,
+    HelpCircle
 } from 'lucide-vue-next';
 import ThemeToggle from '@/Components/ThemeToggle.vue';
 import PageActivityIndicator from '@/Components/PageActivityIndicator.vue';
@@ -255,13 +256,28 @@ const showFlash = ref(true);
                                 :href="route('admin.quizzes.analytics')"
                                 :class="[
                                     'px-3 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-1.5',
-                                    route().current('admin.quizzes.*')
+                                    route().current('admin.quizzes.analytics') || route().current('admin.quizzes.batch-print') || route().current('admin.quizzes.collective-print')
                                         ? 'bg-purple-600/20 text-purple-300 border border-purple-500/40 shadow-xs'
                                         : 'text-slate-300 hover:text-white hover:bg-slate-800'
                                 ]"
                             >
                                 <BarChart3 class="w-4 h-4 text-purple-400" />
                                 <span>Quiz Analytics</span>
+                            </Link>
+
+                            <!-- Question Bank & Bulk CSV (Admins & Facilitators) -->
+                            <Link
+                                v-if="isAdmin || isFacilitator"
+                                :href="route('admin.quizzes.questions.index')"
+                                :class="[
+                                    'px-3 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-1.5',
+                                    route().current('admin.quizzes.questions.*')
+                                        ? 'bg-amber-600/20 text-amber-300 border border-amber-500/40 shadow-xs'
+                                        : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                                ]"
+                            >
+                                <HelpCircle class="w-4 h-4 text-amber-400" />
+                                <span>Question Bank</span>
                             </Link>
 
                             <!-- User Administration (Admins) -->
@@ -509,6 +525,14 @@ const showFlash = ref(true);
                 >
                     <BarChart3 class="w-4 h-4 text-purple-400" />
                     <span>Quiz Analytics &amp; Evaluation</span>
+                </Link>
+                <Link
+                    v-if="isAdmin || isFacilitator"
+                    :href="route('admin.quizzes.questions.index')"
+                    class="block px-3 py-2 rounded-md text-base font-medium text-amber-300 hover:bg-slate-800 flex items-center space-x-2"
+                >
+                    <HelpCircle class="w-4 h-4 text-amber-400" />
+                    <span>Set Questions &amp; Bulk CSV</span>
                 </Link>
                 <Link
                     v-if="isAdmin"

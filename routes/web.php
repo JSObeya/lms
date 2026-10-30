@@ -193,7 +193,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // MCQ Questions Setting & Bulk CSV Upload
     Route::get('/admin/quizzes/questions/sample-csv', [TeacherQuizController::class, 'downloadSampleCsv'])->name('admin.quizzes.questions.sample-csv');
-    Route::get('/admin/quizzes/{quiz?}/questions', [TeacherQuizController::class, 'manageQuestions'])->name('admin.quizzes.questions.index');
+    Route::get('/admin/quizzes/questions/{quiz?}', [TeacherQuizController::class, 'manageQuestions'])->name('admin.quizzes.questions.index');
+    Route::get('/admin/quizzes/{quiz}/questions', [TeacherQuizController::class, 'manageQuestions'])->name('admin.quizzes.questions.quiz');
     Route::post('/admin/quizzes/{quiz}/questions', [TeacherQuizController::class, 'storeQuestion'])->name('admin.quizzes.questions.store');
     Route::put('/admin/quizzes/questions/{question}', [TeacherQuizController::class, 'updateQuestion'])->name('admin.quizzes.questions.update');
     Route::delete('/admin/quizzes/questions/{question}', [TeacherQuizController::class, 'destroyQuestion'])->name('admin.quizzes.questions.destroy');

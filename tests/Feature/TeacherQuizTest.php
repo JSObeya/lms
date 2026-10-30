@@ -268,6 +268,7 @@ class TeacherQuizTest extends TestCase
 
     public function test_evaluator_can_view_question_management_screen(): void
     {
+        // Test with specific quiz ID
         $response = $this->actingAs($this->admin)->get(route('admin.quizzes.questions.index', $this->quiz->id));
 
         $response->assertStatus(200);
@@ -276,6 +277,14 @@ class TeacherQuizTest extends TestCase
             ->has('questions.data')
             ->has('availableCategories')
             ->where('quiz.total_questions', 50)
+        );
+
+        // Test without quiz ID parameter (default quiz)
+        $defaultResponse = $this->actingAs($this->admin)->get(route('admin.quizzes.questions.index'));
+        $defaultResponse->assertStatus(200);
+        $defaultResponse->assertInertia(fn ($page) => $page
+            ->component('Teacher/Quizzes/ManageQuestions')
+            ->where('quiz.id', $this->quiz->id)
         );
     }
 
