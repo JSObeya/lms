@@ -15,6 +15,7 @@ use App\Http\Controllers\ResourceController;
 use App\Http\Controllers\RubricController;
 use App\Http\Controllers\SubmissionController;
 use App\Http\Controllers\TeacherDocumentController;
+use App\Http\Controllers\TeacherQuizController;
 use App\Http\Controllers\TvetPedagogyController;
 use App\Http\Controllers\UserManagementController;
 use App\Models\Course;
@@ -176,6 +177,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/teacher-documents/{teacherDocument}/preview', [TeacherDocumentController::class, 'preview'])->name('teacher-documents.preview');
     Route::put('/teacher-documents/{teacherDocument}', [TeacherDocumentController::class, 'update'])->name('teacher-documents.update');
     Route::delete('/teacher-documents/{teacherDocument}', [TeacherDocumentController::class, 'destroy'])->name('teacher-documents.destroy');
+
+    // Teacher MCQ Assessment & Evaluation Engine
+    Route::get('/quizzes', [TeacherQuizController::class, 'index'])->name('quizzes.index');
+    Route::get('/quizzes/{quiz}', [TeacherQuizController::class, 'show'])->name('quizzes.show');
+    Route::post('/quizzes/{quiz}/submit', [TeacherQuizController::class, 'submit'])->name('quizzes.submit');
+    Route::get('/quizzes/attempts/{attempt}', [TeacherQuizController::class, 'attempt'])->name('quizzes.attempt');
+    Route::get('/quizzes/attempts/{attempt}/print', [TeacherQuizController::class, 'printAttempt'])->name('quizzes.attempt.print');
+
+    // Quiz Results Analytics & Individual / Collective Evaluation Printing (Admins & Facilitators)
+    Route::get('/admin/quiz-analytics', [TeacherQuizController::class, 'analytics'])->name('admin.quizzes.analytics');
+    Route::match(['get', 'post'], '/admin/quiz-analytics/collective-print', [TeacherQuizController::class, 'collectivePrint'])->name('admin.quizzes.collective-print');
+    Route::match(['get', 'post'], '/admin/quiz-analytics/batch-print', [TeacherQuizController::class, 'batchIndividualPrint'])->name('admin.quizzes.batch-print');
+    Route::get('/admin/quiz-analytics/export-csv', [TeacherQuizController::class, 'exportCsv'])->name('admin.quizzes.export-csv');
 
     // User Administration & Bulk 200 Teacher Import
     Route::get('/admin/users', [UserManagementController::class, 'index'])->name('admin.users.index');

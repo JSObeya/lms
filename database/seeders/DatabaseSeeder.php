@@ -15,6 +15,8 @@ class DatabaseSeeder extends Seeder
             RoleAndCategorySeeder::class,
             LmsDemonstrationSeeder::class,
             TvetPedagogySeeder::class,
+            TeacherDocumentSeeder::class,
+            TvEtCompetencyQuizSeeder::class,
         ]);
     }
 }
