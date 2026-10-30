@@ -161,7 +161,15 @@ const percentage = computed(() => Math.round((completedCount.value / 10) * 100))
                     </p>
                 </div>
 
-                <div class="flex items-center space-x-3">
+                <div class="flex flex-wrap items-center gap-3">
+                    <a
+                        href="/day8-guide/download-word"
+                        class="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/30 hover:bg-amber-500/20 font-semibold text-sm transition shadow-sm"
+                        title="Download official Day 8 Topic Guide document (.docx) to upload to your course"
+                    >
+                        <Download class="w-4 h-4" />
+                        <span>Download Day 8 Topic Guide (.docx)</span>
+                    </a>
                     <button
                         @click="generateLearner"
                         :disabled="formGenerate.processing"
@@ -264,7 +272,16 @@ const percentage = computed(() => Math.round((completedCount.value / 10) * 100))
                     </div>
                 </div>
 
-                <div class="flex items-center space-x-3 shrink-0 self-end md:self-center">
+                <div class="flex flex-wrap items-center gap-2 shrink-0 self-end md:self-center">
+                    <a
+                        v-if="step.number === 4"
+                        href="/day8-guide/download-word"
+                        class="inline-flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 border border-amber-500/30 transition shadow-sm"
+                        title="Download official Day 8 topic Word guide (.docx) to attach to your course section"
+                    >
+                        <Download class="w-3.5 h-3.5" />
+                        <span>Download Topic Guide (.docx)</span>
+                    </a>
                     <a
                         :href="step.actionUrl"
                         class="inline-flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm"

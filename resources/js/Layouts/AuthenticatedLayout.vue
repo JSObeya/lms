@@ -23,7 +23,8 @@ import {
     Wrench,
     Settings2,
     ChevronDown,
-    Sparkles
+    Sparkles,
+    FileDown
 } from 'lucide-vue-next';
 import ThemeToggle from '@/Components/ThemeToggle.vue';
 import PageActivityIndicator from '@/Components/PageActivityIndicator.vue';
@@ -217,6 +218,21 @@ const showFlash = ref(true);
                                 <span>My Teaching Portfolio</span>
                             </Link>
 
+                            <!-- Teacher Document Repository (PDF Downloads) -->
+                            <Link
+                                v-if="isTeacher || isFacilitator || isAdmin"
+                                :href="route('teacher-documents.index')"
+                                :class="[
+                                    'px-3 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-1.5',
+                                    route().current('teacher-documents.*')
+                                        ? 'bg-teal-600/20 text-teal-400 border border-teal-500/30 shadow-xs'
+                                        : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                                ]"
+                            >
+                                <FileDown class="w-4 h-4 text-teal-400" />
+                                <span>Documents</span>
+                            </Link>
+
                             <!-- User Administration (Admins) -->
                             <Link
                                 v-if="isAdmin"
@@ -298,6 +314,11 @@ const showFlash = ref(true);
                                     <DropdownLink :href="route('profile.edit')" class="flex items-center space-x-2">
                                         <User class="w-4 h-4 text-slate-400" />
                                         <span>Account Profile</span>
+                                    </DropdownLink>
+
+                                    <DropdownLink v-if="isTeacher || isFacilitator || isAdmin" :href="route('teacher-documents.index')" class="flex items-center space-x-2">
+                                        <FileDown class="w-4 h-4 text-teal-500" />
+                                        <span>Teacher Documents</span>
                                     </DropdownLink>
 
                                     <DropdownLink v-if="isAdmin" :href="route('admin.audit-logs.index')" class="flex items-center space-x-2 text-emerald-600 dark:text-emerald-400">
@@ -434,6 +455,14 @@ const showFlash = ref(true);
                 >
                     <Briefcase class="w-4 h-4 text-teal-400" />
                     <span>My Teaching Portfolio</span>
+                </Link>
+                <Link
+                    v-if="isTeacher || isFacilitator || isAdmin"
+                    :href="route('teacher-documents.index')"
+                    class="block px-3 py-2 rounded-md text-base font-medium text-slate-200 hover:bg-slate-800 flex items-center space-x-2"
+                >
+                    <FileDown class="w-4 h-4 text-teal-400" />
+                    <span>Teacher Documents &amp; PDFs</span>
                 </Link>
                 <Link
                     v-if="isAdmin"

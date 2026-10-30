@@ -202,7 +202,7 @@ const moveSection = (index, direction) => {
                 <FolderPlus class="w-12 h-12 mx-auto text-slate-400 mb-3" />
                 <h3 class="text-base font-bold text-slate-800 dark:text-slate-200">No sections added to this course</h3>
                 <p class="text-sm text-slate-500 mt-1 max-w-md mx-auto">
-                    Click "Add Topic / Section" to organize your technical syllabus into instructional units.
+                    Click <strong>"Add Topic / Section"</strong> below to create your first topic (verifies Wizard Step 2). Once created, your section card will reveal the <strong>"Add Resource"</strong> button to attach your Word guide, PDF, or technical worksheet (verifies Wizard Step 4).
                 </p>
                 <button
                     @click="showSectionModal = true"
@@ -540,9 +540,9 @@ const moveSection = (index, direction) => {
                             v-model="resourceForm.resource_type"
                             class="w-full rounded-xl border-slate-300 dark:border-slate-700 dark:bg-slate-800 text-sm focus:border-teal-500"
                         >
-                            <option value="pdf">PDF Document</option>
-                            <option value="docx">Word DOCX Worksheet</option>
-                            <option value="url">Educational URL</option>
+                            <option value="docx">Word Document / Guide (.docx)</option>
+                            <option value="pdf">PDF Document (.pdf)</option>
+                            <option value="url">Educational URL (Link)</option>
                             <option value="video_embed">External Video Embed</option>
                             <option value="image">Diagram / Schematic Image</option>
                         </select>

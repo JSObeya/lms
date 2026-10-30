@@ -9,6 +9,7 @@ use App\Models\Course;
 use App\Models\Day8PracticeProgress;
 use App\Models\Grade;
 use App\Models\Rubric;
+use App\Models\TeacherDocument;
 use App\Models\TradeCategory;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -81,6 +82,7 @@ class DashboardController extends Controller
                 'total_submissions' => $totalSubmissions,
                 'graded_submissions' => $gradedSubmissions,
                 'day8_completion_rate' => $completionRate,
+                'total_documents' => TeacherDocument::count(),
             ],
             'trade_distribution' => $tradeDistribution,
             'recent_audits' => $recentAudits,
@@ -126,6 +128,12 @@ class DashboardController extends Controller
 
         $practiceLearners = User::where('sandbox_owner_id', $user->id)->get(['id', 'name', 'email', 'is_synthetic', 'created_at']);
 
+        $recentDocuments = TeacherDocument::published()
+            ->forAudience('teacher')
+            ->latest()
+            ->take(4)
+            ->get();
+
         return Inertia::render('Teacher/Dashboard', [
             'courses' => $courses,
             'day8_progress' => [
@@ -137,6 +145,7 @@ class DashboardController extends Controller
             ],
             'pending_submissions' => $pendingSubmissions,
             'practice_learners' => $practiceLearners,
+            'recent_documents' => $recentDocuments,
         ]);
     }
 

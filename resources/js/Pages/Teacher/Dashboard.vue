@@ -18,7 +18,9 @@ import {
     Compass,
     Layers,
     Settings2,
-    Briefcase
+    Briefcase,
+    FileDown,
+    Download
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -26,6 +28,10 @@ const props = defineProps({
     day8_progress: Object,
     pending_submissions: Array,
     practice_learners: Array,
+    recent_documents: {
+        type: Array,
+        default: () => [],
+    },
 });
 
 const formGenerate = useForm({});
@@ -332,6 +338,59 @@ const generateLearner = () => {
 
             <!-- Right 1 Col: Pending Submissions & Sandbox Learners -->
             <div class="space-y-6">
+                <!-- Official Admin Documents & PDFs for Teachers -->
+                <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+                            <FileDown class="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                            <span>Official Documents &amp; PDFs</span>
+                        </h3>
+                        <Link
+                            :href="route('teacher-documents.index')"
+                            class="text-xs text-teal-600 dark:text-teal-400 hover:underline font-semibold"
+                        >
+                            View All &rarr;
+                        </Link>
+                    </div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-3">
+                        Curriculum guidelines and manuals uploaded by admin for offline reference.
+                    </p>
+
+                    <div v-if="!recent_documents || recent_documents.length === 0" class="text-center py-4 text-xs text-slate-400">
+                        No documents published yet.
+                    </div>
+
+                    <div v-else class="space-y-2.5">
+                        <div
+                            v-for="doc in recent_documents"
+                            :key="doc.id"
+                            class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/80 flex items-center justify-between gap-2"
+                        >
+                            <div class="min-w-0 flex-1">
+                                <div class="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate" :title="doc.title">
+                                    {{ doc.title }}
+                                </div>
+                                <div class="flex items-center space-x-2 text-[10px] text-slate-400 mt-0.5">
+                                    <span class="px-1.5 py-0.2 rounded font-bold uppercase text-[9px] bg-rose-500/15 text-rose-600 dark:text-rose-400">
+                                        {{ doc.file_extension }}
+                                    </span>
+                                    <span>{{ doc.formatted_file_size }}</span>
+                                    <span>&bull;</span>
+                                    <span>{{ doc.category }}</span>
+                                </div>
+                            </div>
+
+                            <a
+                                :href="route('teacher-documents.download', doc.id)"
+                                class="p-2 rounded-lg bg-teal-600/10 hover:bg-teal-600 text-teal-600 hover:text-white dark:bg-teal-500/20 dark:text-teal-300 dark:hover:bg-teal-500 dark:hover:text-white transition shrink-0"
+                                title="Download PDF to your system"
+                            >
+                                <Download class="w-4 h-4" />
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Pending Submissions -->
                 <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
                     <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center justify-between mb-4">

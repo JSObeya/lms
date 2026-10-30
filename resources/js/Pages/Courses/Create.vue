@@ -5,7 +5,8 @@ import {
     BookOpen,
     ArrowLeft,
     Sparkles,
-    Check
+    Check,
+    FileText
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -54,7 +55,18 @@ const submit = () => {
             </div>
         </template>
 
-        <div class="max-w-3xl mx-auto">
+        <div class="max-w-3xl mx-auto space-y-4">
+            <!-- Where to attach files guidance note -->
+            <div class="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 flex items-start space-x-3 text-xs text-blue-900 dark:text-blue-200">
+                <FileText class="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
+                <div>
+                    <div class="font-bold text-sm">Where do I attach technical guides, worksheets, or PDFs?</div>
+                    <p class="mt-1 text-blue-800 dark:text-blue-300 leading-relaxed">
+                        Course files are attached <strong>inside specific course topics/sections</strong>, not on this initial setup form. First fill out the course details below and click <strong>"Initialize Course"</strong>. On the next screen (the <strong>Visual Course Builder</strong>), you will add your topic (Wizard Step 2) and click <strong>"Add Resource"</strong> to upload your Word guide or PDF (Wizard Step 4).
+                    </p>
+                </div>
+            </div>
+
             <form @submit.prevent="submit" class="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
                 <!-- Mode Selection Alert -->
                 <div class="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800">

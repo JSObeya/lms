@@ -12,7 +12,8 @@ import {
     Activity,
     Layers,
     ChevronRight,
-    GraduationCap
+    GraduationCap,
+    FileDown
 } from 'lucide-vue-next';
 
 defineProps({
@@ -41,6 +42,14 @@ defineProps({
                 </div>
 
                 <div class="flex items-center space-x-3">
+                    <Link
+                        :href="route('teacher-documents.index')"
+                        class="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-slate-850 hover:bg-slate-800 text-slate-200 hover:text-white font-semibold text-sm shadow-sm transition border border-slate-700"
+                    >
+                        <FileDown class="w-4 h-4 text-teal-400" />
+                        <span>Teacher Documents ({{ metrics.total_documents || 0 }})</span>
+                    </Link>
+
                     <Link
                         :href="route('admin.users.index')"
                         class="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-sm shadow-sm transition"

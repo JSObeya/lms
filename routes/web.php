@@ -14,6 +14,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ResourceController;
 use App\Http\Controllers\RubricController;
 use App\Http\Controllers\SubmissionController;
+use App\Http\Controllers\TeacherDocumentController;
 use App\Http\Controllers\TvetPedagogyController;
 use App\Http\Controllers\UserManagementController;
 use App\Models\Course;
@@ -66,6 +67,24 @@ Route::get('/user-guide/download-word', function () {
         ]
     );
 })->name('user.guide.download-word');
+
+// Download Word Version (.docx) of Day 8 Practical Topic Guide
+Route::get('/day8-guide/download-word', function () {
+    $v2Path = public_path('downloads/Day8_AI_Assisted_Lesson_Preparation_Guide_v2.docx');
+    $filePath = file_exists($v2Path) ? $v2Path : public_path('downloads/Day8_AI_Assisted_Lesson_Preparation_Guide.docx');
+
+    if (! file_exists($filePath)) {
+        abort(404, 'Day 8 guide document not found.');
+    }
+
+    return response()->download(
+        $filePath,
+        'Day8_AI_Assisted_Lesson_Preparation_Guide.docx',
+        [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ]
+    );
+})->name('day8.guide.download-word');
 
 Route::get('/trainee-guide', function () {
     return Inertia::render('Trainee/Guide');
@@ -148,6 +167,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/portfolio', [PortfolioController::class, 'index'])->name('portfolio.index');
     Route::post('/portfolio/items', [PortfolioController::class, 'storeItem'])->name('portfolio.items.store');
     Route::post('/portfolio/share', [PortfolioController::class, 'share'])->name('portfolio.share');
+
+    // Central Document Repository for Teachers & Administrators (Upload & PDF Downloads)
+    Route::get('/teacher-documents', [TeacherDocumentController::class, 'index'])->name('teacher-documents.index');
+    Route::post('/teacher-documents', [TeacherDocumentController::class, 'store'])->name('teacher-documents.store');
+    Route::get('/teacher-documents/{teacherDocument}/download', [TeacherDocumentController::class, 'download'])->name('teacher-documents.download');
+    Route::get('/teacher-documents/{teacherDocument}/preview', [TeacherDocumentController::class, 'preview'])->name('teacher-documents.preview');
+    Route::put('/teacher-documents/{teacherDocument}', [TeacherDocumentController::class, 'update'])->name('teacher-documents.update');
+    Route::delete('/teacher-documents/{teacherDocument}', [TeacherDocumentController::class, 'destroy'])->name('teacher-documents.destroy');
 
     // User Administration & Bulk 200 Teacher Import
     Route::get('/admin/users', [UserManagementController::class, 'index'])->name('admin.users.index');
