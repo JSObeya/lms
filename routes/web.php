@@ -217,7 +217,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/admin/quizzes/{quiz}', [TeacherQuizController::class, 'updateQuiz'])->name('admin.quizzes.update');
     Route::delete('/admin/quizzes/{quiz}', [TeacherQuizController::class, 'destroyQuiz'])->name('admin.quizzes.destroy');
 
-    // MCQ Questions Setting & Bulk CSV Upload
+    // MCQ Questions Setting & Bulk CSV Upload (Standalone Unique Exam Creation or Ingestion)
     Route::get('/admin/quizzes/questions/sample-csv', [TeacherQuizController::class, 'downloadSampleCsv'])->name('admin.quizzes.questions.sample-csv');
     Route::get('/quizzes/questions/sample-csv', [TeacherQuizController::class, 'downloadSampleCsv']);
     Route::get('/admin/quizzes/questions/{quiz?}', [TeacherQuizController::class, 'manageQuestions'])->name('admin.quizzes.questions.index');
@@ -227,7 +227,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/admin/quizzes/{quiz}/questions', [TeacherQuizController::class, 'storeQuestion'])->name('admin.quizzes.questions.store');
     Route::put('/admin/quizzes/questions/{question}', [TeacherQuizController::class, 'updateQuestion'])->name('admin.quizzes.questions.update');
     Route::delete('/admin/quizzes/questions/{question}', [TeacherQuizController::class, 'destroyQuestion'])->name('admin.quizzes.questions.destroy');
-    Route::post('/admin/quizzes/{quiz}/questions/bulk-csv', [TeacherQuizController::class, 'bulkUploadCsv'])->name('admin.quizzes.questions.bulk-csv');
+    Route::post('/admin/quizzes/questions/bulk-csv/{quiz?}', [TeacherQuizController::class, 'bulkUploadCsv'])->name('admin.quizzes.questions.bulk-csv');
+    Route::post('/quizzes/questions/bulk-csv/{quiz?}', [TeacherQuizController::class, 'bulkUploadCsv']);
+    Route::post('/admin/quizzes/{quiz}/questions/bulk-csv', [TeacherQuizController::class, 'bulkUploadCsv']);
+    Route::post('/quizzes/{quiz}/questions/bulk-csv', [TeacherQuizController::class, 'bulkUploadCsv']);
 
     // User Administration & Bulk 200 Teacher Import
     Route::get('/admin/users', [UserManagementController::class, 'index'])->name('admin.users.index');

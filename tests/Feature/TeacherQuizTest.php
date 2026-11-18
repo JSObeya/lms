@@ -408,6 +408,82 @@ class TeacherQuizTest extends TestCase
         $this->assertEquals(52, $this->quiz->fresh()->total_questions);
     }
 
+    public function test_evaluator_can_bulk_upload_questions_as_new_standalone_unique_exam(): void
+    {
+        $csvContent = "category,question_text,option_a,option_b,option_c,option_d,correct_option,explanation,points\n";
+        $csvContent .= "Solar PV,What is an inverter?,Converts DC to AC,Stores charge,Measures heat,Blocks lightning,a,Inverters convert DC to AC,1\n";
+        $csvContent .= "Solar PV,Which angle maximizes solar radiation?,Tilt angle,Reflect angle,Cosine angle,Perpendicular angle,a,Optimal tilt angle faces latitude,1\n";
+
+        $file = UploadedFile::fake()->createWithContent('solar_pv_level1_exam.csv', $csvContent);
+
+        $response = $this->actingAs($this->admin)->post(route('admin.quizzes.questions.bulk-csv'), [
+            'csv_file' => $file,
+            'destination' => 'new_exam',
+            'exam_title' => 'Solar PV Level 1 Technical Assessment Exam',
+            'category' => 'Solar PV & Renewable Energy',
+            'time_limit_minutes' => 45,
+            'passing_percentage' => 65,
+            'is_active' => true,
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('quizzes', [
+            'title' => 'Solar PV Level 1 Technical Assessment Exam',
+            'category' => 'Solar PV & Renewable Energy',
+            'time_limit_minutes' => 45,
+            'passing_percentage' => 65,
+            'total_questions' => 2,
+            'is_active' => true,
+        ]);
+
+        $newQuiz = Quiz::where('title', 'Solar PV Level 1 Technical Assessment Exam')->firstOrFail();
+        $this->assertEquals(2, $newQuiz->questions()->count());
+
+        // Verify registered candidate sees this unique separate exam on /quizzes
+        $candidateResponse = $this->actingAs($this->teacher)->get(route('quizzes.index'));
+        $candidateResponse->assertStatus(200);
+        $candidateResponse->assertInertia(fn ($page) => $page
+            ->component('Teacher/Quizzes/Index')
+            ->has('quizzes', 2)
+        );
+    }
+
+    public function test_evaluator_can_bulk_upload_and_auto_split_into_multiple_unique_exams(): void
+    {
+        $csvContent = "category,question_text,option_a,option_b,option_c,option_d,correct_option,explanation,points\n";
+        $csvContent .= "Carpentry,What tool cuts dovetail joints?,Dovetail saw,Jack plane,Spoke shave,Rip saw,a,A dovetail saw provides fine kerfs,1\n";
+        $csvContent .= "Plumbing,What pipe joins without solder?,PEX with push fittings,Lead pipe,Cast iron,Mild steel,a,PEX fittings are push-fit,1\n";
+
+        $file = UploadedFile::fake()->createWithContent('multi_trades.csv', $csvContent);
+
+        $response = $this->actingAs($this->admin)->post(route('admin.quizzes.questions.bulk-csv'), [
+            'csv_file' => $file,
+            'destination' => 'new_exam',
+            'exam_title' => 'National Trade Certification',
+            'split_by_category' => true,
+            'time_limit_minutes' => 60,
+            'passing_percentage' => 60,
+            'is_active' => true,
+        ]);
+
+        $response->assertRedirect(route('quizzes.index'));
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('quizzes', [
+            'title' => 'National Trade Certification (Carpentry)',
+            'category' => 'Carpentry',
+            'total_questions' => 1,
+        ]);
+
+        $this->assertDatabaseHas('quizzes', [
+            'title' => 'National Trade Certification (Plumbing)',
+            'category' => 'Plumbing',
+            'total_questions' => 1,
+        ]);
+    }
+
     public function test_teacher_cannot_manage_questions(): void
     {
         $response = $this->actingAs($this->teacher)->get(route('admin.quizzes.questions.index', $this->quiz->id));

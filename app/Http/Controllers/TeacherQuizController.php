@@ -109,13 +109,7 @@ class TeacherQuizController extends Controller
             'is_active' => ['nullable', 'boolean'],
         ]);
 
-        $baseSlug = Str::slug($validated['title']);
-        $slug = $baseSlug ?: 'quiz-'.time();
-        $counter = 1;
-        while (Quiz::where('slug', $slug)->exists()) {
-            $slug = "{$baseSlug}-{$counter}";
-            $counter++;
-        }
+        $slug = $this->generateUniqueSlug($validated['title']);
 
         $quiz = Quiz::create([
             'title' => trim($validated['title']),
@@ -924,19 +918,57 @@ class TeacherQuizController extends Controller
     }
 
     /**
-     * Bulk CSV Upload of MCQ questions into a quiz.
+     * Generate a unique slug for a quiz.
      */
-    public function bulkUploadCsv(Request $request, Quiz $quiz): RedirectResponse
+    protected function generateUniqueSlug(string $title, ?int $exceptId = null): string
+    {
+        $baseSlug = Str::slug($title) ?: 'exam-'.time();
+        $slug = $baseSlug;
+        $counter = 1;
+
+        while (Quiz::where('slug', $slug)->when($exceptId, fn ($q) => $q->where('id', '!=', $exceptId))->exists()) {
+            $slug = "{$baseSlug}-{$counter}";
+            $counter++;
+        }
+
+        return $slug;
+    }
+
+    /**
+     * Bulk CSV Upload of MCQ questions into an existing quiz or as brand-new standalone unique exam(s).
+     */
+    public function bulkUploadCsv(Request $request, ?Quiz $quiz = null): RedirectResponse
     {
         $this->authorizeEvaluator();
 
         $request->validate([
             'csv_file' => ['required', 'file', 'mimes:csv,txt', 'max:10240'],
+            'destination' => ['nullable', 'in:new_exam,existing_quiz'],
             'mode' => ['nullable', 'in:append,replace'],
+            'exam_title' => ['nullable', 'string', 'max:255'],
+            'category' => ['nullable', 'string', 'max:100'],
+            'time_limit_minutes' => ['nullable', 'integer', 'min:5', 'max:300'],
+            'passing_percentage' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'instructions' => ['nullable', 'string', 'max:2000'],
+            'is_active' => ['nullable', 'boolean'],
+            'split_by_category' => ['nullable', 'boolean'],
         ]);
 
         $file = $request->file('csv_file');
-        $mode = $request->input('mode', 'append');
+
+        // Determine destination: 'new_exam' (standalone unique exam) or 'existing_quiz'
+        $destination = $request->input('destination');
+        if (! $destination) {
+            if (! $quiz || ! $quiz->exists || $request->filled('exam_title') || $request->boolean('split_by_category')) {
+                $destination = 'new_exam';
+            } else {
+                $destination = 'existing_quiz';
+            }
+        }
+        if (! $quiz || ! $quiz->exists) {
+            $destination = 'new_exam';
+        }
 
         $handle = fopen($file->getRealPath(), 'r');
         if (! $handle) {
@@ -973,16 +1005,8 @@ class TeacherQuizController extends Controller
             return back()->with('error', 'CSV is missing mandatory columns: question_text, option_a, option_b, option_c, option_d, correct_option.');
         }
 
-        if ($mode === 'replace') {
-            $quiz->questions()->delete();
-            $nextNumber = 1;
-        } else {
-            $nextNumber = ($quiz->questions()->max('question_number') ?? 0) + 1;
-        }
-
-        $importedCount = 0;
+        $rows = [];
         $skippedCount = 0;
-        $categoriesSeen = [];
 
         while (($row = fgetcsv($handle)) !== false) {
             if (empty(array_filter($row))) {
@@ -1019,9 +1043,7 @@ class TeacherQuizController extends Controller
                 ? max(1, (int) $row[$colMap['points']])
                 : 1;
 
-            QuizQuestion::create([
-                'quiz_id' => $quiz->id,
-                'question_number' => $nextNumber++,
+            $rows[] = [
                 'category' => $cat,
                 'question_text' => $questionText,
                 'option_a' => $optA,
@@ -1031,41 +1053,195 @@ class TeacherQuizController extends Controller
                 'correct_option' => $correct,
                 'explanation' => $explanation,
                 'points' => $points,
-            ]);
-
-            $importedCount++;
-            $categoriesSeen[$cat] = true;
+            ];
         }
 
         fclose($handle);
 
-        $totalInQuiz = $quiz->questions()->count();
-        $quiz->update(['total_questions' => $totalInQuiz]);
+        if (empty($rows)) {
+            return back()->with('error', 'No valid questions found in the CSV. Please ensure rows have question text, all 4 options, and correct option (A, B, C, or D).');
+        }
 
-        $catList = implode(', ', array_keys($categoriesSeen));
+        // -------------------------------------------------------------
+        // BRANCH 1: Import into Existing Quiz
+        // -------------------------------------------------------------
+        if ($destination === 'existing_quiz' && $quiz && $quiz->exists) {
+            $mode = $request->input('mode', 'append');
+            if ($mode === 'replace') {
+                $quiz->questions()->delete();
+                $nextNumber = 1;
+            } else {
+                $nextNumber = ($quiz->questions()->max('question_number') ?? 0) + 1;
+            }
+
+            $categoriesSeen = [];
+            foreach ($rows as $item) {
+                QuizQuestion::create([
+                    'quiz_id' => $quiz->id,
+                    'question_number' => $nextNumber++,
+                    'category' => $item['category'],
+                    'question_text' => $item['question_text'],
+                    'option_a' => $item['option_a'],
+                    'option_b' => $item['option_b'],
+                    'option_c' => $item['option_c'],
+                    'option_d' => $item['option_d'],
+                    'correct_option' => $item['correct_option'],
+                    'explanation' => $item['explanation'],
+                    'points' => $item['points'],
+                ]);
+                $categoriesSeen[$item['category']] = true;
+            }
+
+            $totalInQuiz = $quiz->questions()->count();
+            $quiz->update(['total_questions' => $totalInQuiz]);
+
+            $catList = implode(', ', array_keys($categoriesSeen));
+            AuditLog::create([
+                'user_id' => auth()->id(),
+                'action' => 'quiz_questions_bulk_imported',
+                'entity_type' => Quiz::class,
+                'entity_id' => $quiz->id,
+                'description' => 'Bulk imported '.count($rows)." MCQ questions into {$quiz->title} (mode: {$mode}).",
+                'metadata' => [
+                    'imported' => count($rows),
+                    'skipped' => $skippedCount,
+                    'total_questions' => $totalInQuiz,
+                    'categories' => array_keys($categoriesSeen),
+                ],
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+
+            $msg = 'Successfully imported '.count($rows)." questions into {$quiz->title}. Total questions: {$totalInQuiz}.";
+            if ($skippedCount > 0) {
+                $msg .= " ({$skippedCount} invalid rows skipped).";
+            }
+
+            return redirect()->route('admin.quizzes.questions.index', $quiz->id)->with('success', $msg);
+        }
+
+        // -------------------------------------------------------------
+        // BRANCH 2: Create Brand-New Unique Standalone Exam(s)
+        // -------------------------------------------------------------
+        $timeLimit = (int) $request->input('time_limit_minutes', 60);
+        $passPercentage = (int) $request->input('passing_percentage', 60);
+        $isActive = $request->boolean('is_active', true);
+        $instructions = $request->input('instructions') ?: 'Read each question carefully. Select the most correct answer and submit before time expires.';
+        $baseTitle = trim((string) $request->input('exam_title'));
+
+        if (empty($baseTitle)) {
+            $baseTitle = ucwords(str_replace(['_', '-'], ' ', pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)));
+        }
+
+        // Check if user requested auto-splitting by category
+        if ($request->boolean('split_by_category')) {
+            $grouped = collect($rows)->groupBy('category');
+            $createdQuizzes = [];
+
+            foreach ($grouped as $catName => $items) {
+                $examTitle = count($grouped) > 1 ? "{$baseTitle} ({$catName})" : $baseTitle;
+                $slug = $this->generateUniqueSlug($examTitle);
+
+                $newQuiz = Quiz::create([
+                    'title' => $examTitle,
+                    'slug' => $slug,
+                    'category' => $catName,
+                    'time_limit_minutes' => $timeLimit,
+                    'passing_percentage' => $passPercentage,
+                    'total_questions' => count($items),
+                    'description' => $request->input('description') ?: "Technical competency examination in {$catName}.",
+                    'instructions' => $instructions,
+                    'is_active' => $isActive,
+                    'created_by' => auth()->id(),
+                ]);
+
+                $qNum = 1;
+                foreach ($items as $item) {
+                    QuizQuestion::create([
+                        'quiz_id' => $newQuiz->id,
+                        'question_number' => $qNum++,
+                        'category' => $item['category'],
+                        'question_text' => $item['question_text'],
+                        'option_a' => $item['option_a'],
+                        'option_b' => $item['option_b'],
+                        'option_c' => $item['option_c'],
+                        'option_d' => $item['option_d'],
+                        'correct_option' => $item['correct_option'],
+                        'explanation' => $item['explanation'],
+                        'points' => $item['points'],
+                    ]);
+                }
+
+                $createdQuizzes[] = $newQuiz;
+            }
+
+            AuditLog::create([
+                'user_id' => auth()->id(),
+                'action' => 'quizzes_bulk_created_from_csv',
+                'entity_type' => Quiz::class,
+                'entity_id' => null,
+                'description' => 'Created '.count($createdQuizzes).' unique separate exams from CSV: '.collect($createdQuizzes)->pluck('title')->implode(', '),
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+
+            return redirect()->route('quizzes.index')->with('success', 'Created '.count($createdQuizzes).' unique separate exams! Registered candidates can now sit these exams individually on the portal.');
+        }
+
+        // Single unique exam from CSV
+        $category = trim((string) $request->input('category'));
+        if (empty($category)) {
+            $category = $rows[0]['category'] ?? 'General Competency';
+        }
+
+        $slug = $this->generateUniqueSlug($baseTitle);
+
+        $newQuiz = Quiz::create([
+            'title' => $baseTitle,
+            'slug' => $slug,
+            'category' => $category,
+            'time_limit_minutes' => $timeLimit,
+            'passing_percentage' => $passPercentage,
+            'total_questions' => count($rows),
+            'description' => $request->input('description') ?: "Competency assessment in {$category}.",
+            'instructions' => $instructions,
+            'is_active' => $isActive,
+            'created_by' => auth()->id(),
+        ]);
+
+        $qNum = 1;
+        foreach ($rows as $item) {
+            QuizQuestion::create([
+                'quiz_id' => $newQuiz->id,
+                'question_number' => $qNum++,
+                'category' => $item['category'],
+                'question_text' => $item['question_text'],
+                'option_a' => $item['option_a'],
+                'option_b' => $item['option_b'],
+                'option_c' => $item['option_c'],
+                'option_d' => $item['option_d'],
+                'correct_option' => $item['correct_option'],
+                'explanation' => $item['explanation'],
+                'points' => $item['points'],
+            ]);
+        }
 
         AuditLog::create([
             'user_id' => auth()->id(),
-            'action' => 'quiz_questions_bulk_imported',
+            'action' => 'quiz_created_from_csv',
             'entity_type' => Quiz::class,
-            'entity_id' => $quiz->id,
-            'description' => "Bulk imported {$importedCount} MCQ questions into {$quiz->title} (mode: {$mode}).",
-            'metadata' => [
-                'imported' => $importedCount,
-                'skipped' => $skippedCount,
-                'total_questions' => $totalInQuiz,
-                'categories' => array_keys($categoriesSeen),
-            ],
+            'entity_id' => $newQuiz->id,
+            'description' => "Created unique exam {$newQuiz->title} with ".count($rows).' questions from CSV upload.',
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
         ]);
 
-        $msg = "Bulk import complete! Successfully imported {$importedCount} MCQ question(s) across categories: {$catList}. Total quiz questions: {$totalInQuiz}.";
+        $msg = "Unique exam '{$newQuiz->title}' created successfully with ".count($rows).' questions! Registered candidates can now sit this exam at /quizzes.';
         if ($skippedCount > 0) {
-            $msg .= " ({$skippedCount} rows skipped due to missing text or invalid correct option).";
+            $msg .= " ({$skippedCount} invalid rows were skipped).";
         }
 
-        return back()->with('success', $msg);
+        return redirect()->route('admin.quizzes.questions.index', $newQuiz->id)->with('success', $msg);
     }
 
     /**

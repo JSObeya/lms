@@ -68,6 +68,7 @@ const showAddModal = ref(false);
 const showEditModal = ref(false);
 const showDeleteModal = ref(false);
 const showBulkModal = ref(false);
+const showCreateExamModal = ref(false);
 
 const questionToEdit = ref(null);
 const questionToDelete = ref(null);
@@ -75,6 +76,17 @@ const questionToDelete = ref(null);
 // Custom category toggle
 const isCustomCategory = ref(false);
 const customCategoryInput = ref('');
+
+// Create New Exam Form
+const createExamForm = useForm({
+    title: '',
+    category: 'Electrical Installation',
+    time_limit_minutes: 60,
+    passing_percentage: 60,
+    description: '',
+    instructions: 'Read each question carefully. Select the most correct answer and submit before time expires.',
+    is_active: true,
+});
 
 // Question Form (Single Add)
 const questionForm = useForm({
@@ -102,10 +114,19 @@ const editForm = useForm({
     points: 1,
 });
 
-// Bulk Upload Form
+// Bulk Upload Form (Defaults to Creating Brand-New Unique Standalone Exam)
 const bulkForm = useForm({
     csv_file: null,
-    mode: 'append', // 'append' or 'replace'
+    destination: 'new_exam', // 'new_exam' (standalone exam) or 'existing_quiz'
+    mode: 'append', // for existing_quiz: 'append' or 'replace'
+    exam_title: '',
+    category: '',
+    time_limit_minutes: 60,
+    passing_percentage: 60,
+    description: '',
+    instructions: 'Read each question carefully. Select the most correct answer and submit before time expires.',
+    is_active: true,
+    split_by_category: false,
 });
 
 const applyFilters = () => {
@@ -199,14 +220,51 @@ const executeDelete = () => {
     });
 };
 
+// Open Create New Exam Modal
+const openCreateExamModal = () => {
+    createExamForm.reset();
+    createExamForm.title = '';
+    createExamForm.category = props.quiz?.category || 'Electrical Installation';
+    createExamForm.time_limit_minutes = 60;
+    createExamForm.passing_percentage = 60;
+    createExamForm.description = '';
+    createExamForm.instructions = 'Read each question carefully. Select the most correct answer and submit before time expires.';
+    createExamForm.is_active = true;
+    showCreateExamModal.value = true;
+};
+
+// Submit Create Exam
+const submitCreateExam = () => {
+    createExamForm.post(route('admin.quizzes.store'), {
+        onSuccess: () => {
+            showCreateExamModal.value = false;
+            createExamForm.reset();
+        },
+    });
+};
+
 // Handle CSV File Selection
 const handleCsvFile = (e) => {
-    bulkForm.csv_file = e.target.files[0] || null;
+    const file = e.target.files[0] || null;
+    bulkForm.csv_file = file;
+
+    if (file && (!bulkForm.exam_title || bulkForm.exam_title.trim() === '')) {
+        let name = file.name.replace(/\.[^/.]+$/, '');
+        name = name.replace(/[_-]+/g, ' ').trim();
+        name = name.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        if (!name.toLowerCase().includes('exam') && !name.toLowerCase().includes('assessment') && !name.toLowerCase().includes('test')) {
+            name += ' Competency Exam';
+        }
+        bulkForm.exam_title = name;
+    }
+    if (file && !bulkForm.category) {
+        bulkForm.category = props.quiz?.category || 'General Technical Pedagogy';
+    }
 };
 
 // Submit Bulk CSV
 const submitBulkCsv = () => {
-    bulkForm.post(route('admin.quizzes.questions.bulk-csv', props.quiz.id), {
+    bulkForm.post(route('admin.quizzes.questions.bulk-csv', props.quiz?.id), {
         preserveScroll: true,
         onSuccess: () => {
             showBulkModal.value = false;
@@ -258,9 +316,17 @@ const submitBulkCsv = () => {
                         :href="route('quizzes.index')"
                         class="inline-flex items-center space-x-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl text-xs font-semibold border border-slate-300 dark:border-slate-700 transition"
                     >
-                        <Plus class="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+                        <Layers class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
                         <span>All Exams</span>
                     </Link>
+
+                    <button
+                        @click="openCreateExamModal"
+                        class="inline-flex items-center space-x-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition"
+                    >
+                        <Plus class="w-3.5 h-3.5" />
+                        <span>Create New Exam</span>
+                    </button>
 
                     <a
                         :href="route('admin.quizzes.questions.sample-csv')"
@@ -685,10 +751,10 @@ const submitBulkCsv = () => {
                         </div>
                         <div>
                             <h3 class="text-base font-bold text-slate-900 dark:text-white">
-                                Bulk CSV Question Upload
+                                Bulk CSV Question Upload &amp; Exam Creation
                             </h3>
                             <p class="text-xs text-slate-500 dark:text-slate-400">
-                                Import dozens or hundreds of MCQ questions across categories in seconds
+                                Upload MCQ exams as unique separate assessments or import into current exam
                             </p>
                         </div>
                     </div>
@@ -713,6 +779,47 @@ const submitBulkCsv = () => {
                         </a>
                     </div>
 
+                    <!-- Destination Selection: New Unique Exam vs Existing Exam -->
+                    <div class="space-y-2">
+                        <InputLabel value="Upload Destination Target *" />
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <label
+                                class="p-3 rounded-xl border cursor-pointer flex items-start space-x-2.5 transition"
+                                :class="bulkForm.destination === 'new_exam' ? 'bg-teal-50 dark:bg-teal-950/40 border-teal-500 ring-1 ring-teal-500' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'"
+                            >
+                                <input
+                                    type="radio"
+                                    value="new_exam"
+                                    v-model="bulkForm.destination"
+                                    class="text-teal-600 focus:ring-teal-500 mt-0.5"
+                                />
+                                <div class="text-xs">
+                                    <div class="flex items-center space-x-1.5">
+                                        <strong class="font-bold text-slate-900 dark:text-white block">Create New Unique Exam</strong>
+                                        <span class="px-1.5 py-0.2 bg-teal-100 dark:bg-teal-900/60 text-teal-700 dark:text-teal-300 text-[10px] font-bold rounded">Recommended</span>
+                                    </div>
+                                    <span class="text-slate-500">Creates a distinct standalone exam that registered candidates can sit at /quizzes.</span>
+                                </div>
+                            </label>
+
+                            <label
+                                class="p-3 rounded-xl border cursor-pointer flex items-start space-x-2.5 transition"
+                                :class="bulkForm.destination === 'existing_quiz' ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-500 ring-1 ring-amber-500' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'"
+                            >
+                                <input
+                                    type="radio"
+                                    value="existing_quiz"
+                                    v-model="bulkForm.destination"
+                                    class="text-amber-600 focus:ring-amber-500 mt-0.5"
+                                />
+                                <div class="text-xs">
+                                    <strong class="font-bold text-slate-900 dark:text-white block">Current Exam ({{ quiz.title }})</strong>
+                                    <span class="text-slate-500">Appends or replaces questions inside this currently opened exam.</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
                     <!-- File Picker -->
                     <div>
                         <InputLabel value="Select CSV File (.csv) *" />
@@ -726,8 +833,90 @@ const submitBulkCsv = () => {
                         <InputError :message="bulkForm.errors.csv_file" class="mt-1" />
                     </div>
 
-                    <!-- Import Mode (Append or Replace) -->
-                    <div class="space-y-2 pt-2">
+                    <!-- IF DESTINATION = NEW STANDALONE EXAM -->
+                    <div v-if="bulkForm.destination === 'new_exam'" class="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3">
+                        <div class="flex items-center space-x-1.5 text-xs font-bold text-teal-700 dark:text-teal-400">
+                            <Layers class="w-4 h-4" />
+                            <span>Unique Examination Settings</span>
+                        </div>
+
+                        <div>
+                            <InputLabel value="Exam Title *" />
+                            <TextInput
+                                v-model="bulkForm.exam_title"
+                                type="text"
+                                class="mt-1 block w-full text-xs"
+                                placeholder="e.g. Solar PV Level 1 Technical Assessment Exam"
+                                required
+                            />
+                            <InputError :message="bulkForm.errors.exam_title" class="mt-1" />
+                            <p class="text-[11px] text-slate-500 mt-0.5">Automatically populated from CSV filename; you can customize it anytime.</p>
+                        </div>
+
+                        <div>
+                            <InputLabel value="Category / Trade Specialization *" />
+                            <input
+                                v-model="bulkForm.category"
+                                list="exam-categories-list"
+                                type="text"
+                                class="mt-1 block w-full rounded-xl border-slate-300 dark:border-slate-700 dark:bg-slate-900 text-slate-900 dark:text-white text-xs shadow-xs focus:border-teal-500 focus:ring-teal-500"
+                                placeholder="e.g. Electrical Installation, Solar PV, Welding & Fabrication..."
+                                required
+                            />
+                            <datalist id="exam-categories-list">
+                                <option v-for="cat in availableCategories" :key="cat" :value="cat" />
+                            </datalist>
+                            <InputError :message="bulkForm.errors.category" class="mt-1" />
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <InputLabel value="Time Limit (Minutes) *" />
+                                <TextInput
+                                    v-model.number="bulkForm.time_limit_minutes"
+                                    type="number"
+                                    min="5"
+                                    max="300"
+                                    class="mt-1 block w-full text-xs"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <InputLabel value="Passing Percentage (%) *" />
+                                <TextInput
+                                    v-model.number="bulkForm.passing_percentage"
+                                    type="number"
+                                    min="1"
+                                    max="100"
+                                    class="mt-1 block w-full text-xs"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div class="space-y-2 pt-1 border-t border-slate-200 dark:border-slate-700">
+                            <label class="flex items-center space-x-2 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    v-model="bulkForm.split_by_category"
+                                    class="rounded border-slate-300 text-teal-600 shadow-xs focus:ring-teal-500"
+                                />
+                                <span><strong>Auto-Split Multiple Categories:</strong> If CSV has multiple categories, create a separate unique exam for each category</span>
+                            </label>
+
+                            <label class="flex items-center space-x-2 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    v-model="bulkForm.is_active"
+                                    class="rounded border-slate-300 text-teal-600 shadow-xs focus:ring-teal-500"
+                                />
+                                <span><strong>Publish immediately:</strong> Make active for registered candidates to sit immediately on /quizzes</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- IF DESTINATION = EXISTING QUIZ (APPEND / REPLACE) -->
+                    <div v-if="bulkForm.destination === 'existing_quiz'" class="space-y-2 pt-2">
                         <InputLabel value="Import Action Mode *" />
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <label
@@ -769,8 +958,119 @@ const submitBulkCsv = () => {
                             Cancel
                         </SecondaryButton>
                         <PrimaryButton :disabled="bulkForm.processing || !bulkForm.csv_file" class="bg-teal-600 hover:bg-teal-700">
-                            <span v-if="bulkForm.processing">Processing CSV...</span>
+                            <span v-if="bulkForm.processing">Processing CSV &amp; Exam...</span>
+                            <span v-else-if="bulkForm.destination === 'new_exam'">Create Unique Exam &amp; Ingest Questions</span>
                             <span v-else>Upload &amp; Ingest Questions</span>
+                        </PrimaryButton>
+                    </div>
+                </form>
+            </div>
+        </Modal>
+
+        <!-- ========================================================= -->
+        <!-- Create New Exam Modal (Directly in Question Bank) -->
+        <!-- ========================================================= -->
+        <Modal :show="showCreateExamModal" @close="showCreateExamModal = false" max-width="lg">
+            <div class="p-6 space-y-4">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+                    <div class="flex items-center space-x-2.5">
+                        <div class="p-2 bg-emerald-500/10 rounded-xl text-emerald-600 dark:text-emerald-400">
+                            <Plus class="w-5 h-5" />
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-slate-900 dark:text-white">
+                                Create New Examination / Quiz
+                            </h3>
+                            <p class="text-xs text-slate-500">Set up a unique assessment for registered candidates</p>
+                        </div>
+                    </div>
+                    <button @click="showCreateExamModal = false" class="text-slate-400 hover:text-slate-600">
+                        <X class="w-5 h-5" />
+                    </button>
+                </div>
+
+                <form @submit.prevent="submitCreateExam" class="space-y-4">
+                    <div>
+                        <InputLabel value="Examination Title *" />
+                        <TextInput
+                            v-model="createExamForm.title"
+                            type="text"
+                            class="mt-1 block w-full text-xs"
+                            placeholder="e.g. Electrical Installation & Maintenance National Exam"
+                            required
+                        />
+                        <InputError :message="createExamForm.errors.title" class="mt-1" />
+                    </div>
+
+                    <div>
+                        <InputLabel value="Category / Trade Specialization *" />
+                        <input
+                            v-model="createExamForm.category"
+                            list="available-cats-list"
+                            type="text"
+                            class="mt-1 block w-full rounded-xl border-slate-300 dark:border-slate-700 dark:bg-slate-900 text-slate-900 dark:text-white text-xs shadow-xs focus:border-emerald-500 focus:ring-emerald-500"
+                            placeholder="e.g. Electrical Installation, ICT, Welding..."
+                            required
+                        />
+                        <datalist id="available-cats-list">
+                            <option v-for="cat in availableCategories" :key="cat" :value="cat" />
+                        </datalist>
+                        <InputError :message="createExamForm.errors.category" class="mt-1" />
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <InputLabel value="Time Limit (Minutes) *" />
+                            <TextInput
+                                v-model.number="createExamForm.time_limit_minutes"
+                                type="number"
+                                min="5"
+                                max="300"
+                                class="mt-1 block w-full text-xs"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <InputLabel value="Passing Percentage (%) *" />
+                            <TextInput
+                                v-model.number="createExamForm.passing_percentage"
+                                type="number"
+                                min="1"
+                                max="100"
+                                class="mt-1 block w-full text-xs"
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <InputLabel value="Exam Description (Optional)" />
+                        <textarea
+                            v-model="createExamForm.description"
+                            rows="2"
+                            class="mt-1 block w-full rounded-xl border-slate-300 dark:border-slate-700 dark:bg-slate-900 text-slate-900 dark:text-white text-xs shadow-xs focus:border-emerald-500 focus:ring-emerald-500"
+                            placeholder="Brief description of the exam scope..."
+                        ></textarea>
+                    </div>
+
+                    <div class="pt-1">
+                        <label class="flex items-center space-x-2 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                v-model="createExamForm.is_active"
+                                class="rounded border-slate-300 text-emerald-600 shadow-xs focus:ring-emerald-500"
+                            />
+                            <span><strong>Active immediately:</strong> Available for candidates to sit at /quizzes</span>
+                        </label>
+                    </div>
+
+                    <div class="flex items-center justify-end space-x-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+                        <SecondaryButton @click="showCreateExamModal = false">
+                            Cancel
+                        </SecondaryButton>
+                        <PrimaryButton :disabled="createExamForm.processing" class="bg-emerald-600 hover:bg-emerald-700">
+                            <span v-if="createExamForm.processing">Creating Exam...</span>
+                            <span v-else>Create Exam &amp; Open Question Bank</span>
                         </PrimaryButton>
                     </div>
                 </form>
